@@ -245,6 +245,18 @@ password = "admin"
         self.assertEqual(payload["fields"][0]["name"], "notes")
         self.assertEqual(payload["fields"][1]["selection"][0][0], "draft")
 
+    def test_fields_reports_unknown_field_without_keyerror_quotes(self) -> None:
+        connection = Mock()
+        connection.profile_name = "local"
+        connection.model.return_value.fields.side_effect = KeyError("Unknown fields: nope")
+
+        with patch("indoo.cli.connect", return_value=connection):
+            result = self.runner.invoke(app, ["fields", "purchase.order", "nope"])
+
+        self.assertEqual(result.exit_code, 1, result.stdout)
+        payload = json.loads(result.stdout)
+        self.assertEqual(payload["message"], "Unknown fields: nope")
+
     def test_write_and_show_rejects_value_and_json_together(self) -> None:
         result = self.runner.invoke(
             app,

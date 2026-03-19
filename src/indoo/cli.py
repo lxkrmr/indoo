@@ -57,6 +57,12 @@ def fail(
     raise typer.Exit(code=code)
 
 
+def error_message(exc: Exception) -> str:
+    if isinstance(exc, KeyError) and exc.args:
+        return str(exc.args[0])
+    return str(exc)
+
+
 def load_config() -> IndoConfig:
     return IndoConfig.load()
 
@@ -177,7 +183,7 @@ def describe_command(
     try:
         description = describe_subject(subject)
     except KeyError as exc:
-        fail(ctx, str(exc), details={"action": "describe"})
+        fail(ctx, error_message(exc), details={"action": "describe"})
 
     emit(
         ctx,
@@ -232,7 +238,7 @@ def show_record(
             },
         )
     except Exception as exc:
-        fail(ctx, str(exc), details={"action": "show", "model": model, "id": record_id})
+        fail(ctx, error_message(exc), details={"action": "show", "model": model, "id": record_id})
 
 
 @app.command("fields")
@@ -265,7 +271,7 @@ def fields_command(
             },
         )
     except Exception as exc:
-        fail(ctx, str(exc), details={"action": "fields", "model": model})
+        fail(ctx, error_message(exc), details={"action": "fields", "model": model})
 
 
 @app.command("write-and-show")
@@ -342,7 +348,7 @@ def write_and_show_record(
             },
         )
     except Exception as exc:
-        fail(ctx, str(exc), details={"action": "write_and_show", "model": model, "id": record_id})
+        fail(ctx, error_message(exc), details={"action": "write_and_show", "model": model, "id": record_id})
 
 
 @app.command("doctor")
@@ -370,7 +376,7 @@ def doctor(
             },
         )
     except Exception as exc:
-        fail(ctx, str(exc), details=details)
+        fail(ctx, error_message(exc), details=details)
 
     available_profiles = sorted(config.profiles)
     details["available_profiles"] = available_profiles
@@ -394,7 +400,7 @@ def doctor(
             if available_profiles
             else "indoo profile add local --url http://localhost:8069 --db odoo --user admin --password admin"
         )
-        fail(ctx, str(exc), details={**details, "next_command": next_command})
+        fail(ctx, error_message(exc), details={**details, "next_command": next_command})
 
     try:
         OdooConnection.connect(resolved_name, resolved_profile)
@@ -467,7 +473,7 @@ def profile_show(
         config = load_config()
         resolved_name, resolved_profile = config.resolve_profile(validated_profile)
     except Exception as exc:
-        fail(ctx, str(exc), details={"action": "profile_show"})
+        fail(ctx, error_message(exc), details={"action": "profile_show"})
 
     emit(
         ctx,
@@ -516,7 +522,7 @@ def profile_add(
         )
         config.save()
     except Exception as exc:
-        fail(ctx, str(exc), details={"action": "profile_add"})
+        fail(ctx, error_message(exc), details={"action": "profile_add"})
 
     emit(
         ctx,
@@ -549,7 +555,7 @@ def profile_use(
         config.use_profile(validated_name)
         config.save()
     except Exception as exc:
-        fail(ctx, str(exc), details={"action": "profile_use"})
+        fail(ctx, error_message(exc), details={"action": "profile_use"})
 
     emit(
         ctx,
