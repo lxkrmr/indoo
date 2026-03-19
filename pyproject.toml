@@ -3,6 +3,7 @@ name = "indoo"
 version = "0.1.0"
 description = "Agent-friendly CLI for inspecting Odoo records during addon development"
 readme = "README.md"
+license = "MIT"
 authors = [
     { name = "Alexander Kramer", email = "lxkrmr@icloud.com" }
 ]
@@ -11,6 +12,11 @@ dependencies = [
     "odoorpc>=0.10.1",
     "typer>=0.16.1",
 ]
+
+[project.urls]
+Homepage = "https://github.com/lxkrmr/indoo"
+Repository = "https://github.com/lxkrmr/indoo"
+Issues = "https://github.com/lxkrmr/indoo/issues"
 
 [project.scripts]
 indoo = "indoo:main"

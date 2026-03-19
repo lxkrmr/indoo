@@ -1,6 +1,7 @@
 # indoo
 
-`indoo` is a small, agent-friendly CLI for inspecting and updating Odoo records.
+`indoo` is a small, agent-friendly CLI for inspecting and updating Odoo
+records.
 
 The product follows a strict KISS approach:
 - one recommended installation method
@@ -13,13 +14,25 @@ The product follows a strict KISS approach:
 
 Use `uv tool install` as the default installation method.
 
-For local development in this repository:
+Install from GitHub over HTTPS:
 
 ```bash
-uv tool install .
+uv tool install git+https://github.com/lxkrmr/indoo.git
+```
+
+Or install from GitHub over SSH:
+
+```bash
+uv tool install git+ssh://git@github.com/lxkrmr/indoo.git
 ```
 
 After installation, the `indoo` command is available globally.
+
+To refresh an existing installation from GitHub:
+
+```bash
+uv tool install --reinstall git+https://github.com/lxkrmr/indoo.git
+```
 
 ## Configuration
 
@@ -46,34 +59,40 @@ password = "admin"
 1. Install the tool:
 
 ```bash
-uv tool install .
+uv tool install git+https://github.com/lxkrmr/indoo.git
 ```
 
-2. Create a profile:
-
-```bash
-indoo profile add local --url http://localhost:8069 --db odoo --user admin --password admin
-```
-
-3. Verify the setup:
+2. Check the current setup:
 
 ```bash
 indoo doctor
 ```
 
-4. Read a record:
+3. Create a profile:
+
+```bash
+indoo profile add local --url http://localhost:8069 --db odoo --user admin --password admin
+```
+
+4. Verify the setup again:
+
+```bash
+indoo doctor
+```
+
+5. Read a record:
 
 ```bash
 indoo show res.partner 1 name email
 ```
 
-5. Update a record and inspect the result:
+6. Update a record and inspect the result:
 
 ```bash
-indoo write-and-show res.partner 1 name --value name=\"New Name\"
+indoo write-and-show res.partner 1 name --value name="New Name"
 ```
 
-6. Discover the command shape at runtime:
+7. Discover the command shape at runtime:
 
 ```bash
 indoo describe write-and-show
@@ -136,7 +155,7 @@ indoo show sale.order 42 name amount_total state
 You can pass context values in `KEY=VALUE` form:
 
 ```bash
-indoo show sale.order 42 amount_total --context lang=\"de_DE\"
+indoo show sale.order 42 amount_total --context lang="de_DE"
 ```
 
 Or pass the full context as JSON:
@@ -150,7 +169,7 @@ indoo show sale.order 42 amount_total --context-json '{"lang":"de_DE"}'
 Write values and read the record again to inspect changes.
 
 ```bash
-indoo write-and-show sale.order 42 amount_total --value note=\"debug run\"
+indoo write-and-show sale.order 42 amount_total --value note="debug run"
 ```
 
 For agent-generated or nested payloads, use raw JSON:
@@ -216,7 +235,8 @@ indoo --output text doctor
 - profile names are validated
 - control characters are rejected
 - `write-and-show --json` and `--context-json` require JSON objects
-- mutating commands support `--dry-run` so writes can be validated before execution
+- mutating commands support `--dry-run` so writes can be validated before
+  execution
 
 If input is invalid, `indoo` fails early with a concrete error message.
 
@@ -225,6 +245,7 @@ If input is invalid, `indoo` fails early with a concrete error message.
 If no config file exists, start here:
 
 ```bash
+indoo doctor
 indoo profile add local --url http://localhost:8069 --db odoo --user admin --password admin
 indoo doctor
 ```
@@ -239,14 +260,20 @@ indoo doctor
 
 ## Development
 
-Install dependencies:
+For local development in this repository:
 
 ```bash
-UV_CACHE_DIR=/tmp/uv-cache uv sync
+uv sync
+```
+
+Run the CLI from the working tree:
+
+```bash
+uv run indoo --help
 ```
 
 Run tests:
 
 ```bash
-UV_CACHE_DIR=/tmp/uv-cache uv run python -m unittest discover -s tests -v
+uv run python -m unittest discover -s tests -v
 ```
