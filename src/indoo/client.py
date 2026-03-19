@@ -102,8 +102,19 @@ def parse_odoo_url(url: str) -> tuple[str, str, int]:
     parsed = urlparse(url)
     if not parsed.scheme or not parsed.hostname:
         raise ValueError(f"Invalid Odoo URL: {url!r}")
-    port = parsed.port or (443 if parsed.scheme == "https" else 80)
-    return parsed.hostname, parsed.scheme, port
+
+    if parsed.scheme == "http":
+        protocol = "jsonrpc"
+        port = parsed.port or 80
+    elif parsed.scheme == "https":
+        protocol = "jsonrpc+ssl"
+        port = parsed.port or 443
+    else:
+        raise ValueError(
+            f"Invalid Odoo URL scheme: {parsed.scheme!r}. Use http:// or https://."
+        )
+
+    return parsed.hostname, protocol, port
 
 
 def serialize_mapping(values: dict[str, Any]) -> dict[str, Any]:
