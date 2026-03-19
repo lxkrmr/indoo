@@ -214,6 +214,37 @@ password = "admin"
         self.assertEqual(payload["before"], {"amount_total": 10, "state": "draft"})
         record.write.assert_not_called()
 
+    def test_fields_returns_metadata(self) -> None:
+        connection = Mock()
+        connection.profile_name = "local"
+        connection.model.return_value.fields.return_value = [
+            {
+                "name": "notes",
+                "type": "text",
+                "string": "Terms and Conditions",
+                "required": False,
+                "readonly": False,
+            },
+            {
+                "name": "state",
+                "type": "selection",
+                "string": "Status",
+                "required": False,
+                "readonly": True,
+                "selection": [["draft", "RFQ"], ["done", "Locked"]],
+            },
+        ]
+
+        with patch("indoo.cli.connect", return_value=connection):
+            result = self.runner.invoke(app, ["fields", "purchase.order", "notes", "state"])
+
+        self.assertEqual(result.exit_code, 0, result.stdout)
+        payload = json.loads(result.stdout)
+        self.assertEqual(payload["action"], "fields")
+        self.assertEqual(payload["model"], "purchase.order")
+        self.assertEqual(payload["fields"][0]["name"], "notes")
+        self.assertEqual(payload["fields"][1]["selection"][0][0], "draft")
+
     def test_write_and_show_rejects_value_and_json_together(self) -> None:
         result = self.runner.invoke(
             app,

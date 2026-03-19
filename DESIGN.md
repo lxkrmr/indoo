@@ -187,19 +187,18 @@ These are ideas worth revisiting. They are not promises.
 
 ### `indoo fields`
 
-Proposed command:
+`indoo` exposes field metadata directly from the CLI.
+
+Implemented command:
 - `indoo fields MODEL [FIELD ...]`
 
-Goal:
-- expose field metadata directly from the CLI
-
 Why it matters:
-- users and agents currently have to guess field types from convention or
+- users and agents should not have to guess field types from convention or
   trial and error
 - safe writing becomes much easier when the CLI can reveal whether a field
   is `char`, `text`, `selection`, `many2one`, readonly, or required
 
-Suggested default output per field:
+Current default output per field:
 - `name`
 - `type`
 - `string`
@@ -208,10 +207,8 @@ Suggested default output per field:
 - optional `relation`
 - optional `selection`
 
-Example use cases:
-- discover a safe writable field before using `write-and-show`
-- understand how to shape values for relational or selection fields
-- let agents inspect model shape without needing external docs
+This keeps field discovery CLI-first and makes write planning much safer
+without turning `indoo` into a general-purpose metadata dump.
 
 ### Stronger guidance for write safety
 

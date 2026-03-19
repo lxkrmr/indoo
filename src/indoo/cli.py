@@ -235,6 +235,39 @@ def show_record(
         fail(ctx, str(exc), details={"action": "show", "model": model, "id": record_id})
 
 
+@app.command("fields")
+def fields_command(
+    ctx: typer.Context,
+    model: Annotated[str, typer.Argument(help="Technical model name, for example purchase.order.")],
+    fields: Annotated[list[str], typer.Argument(help="Optional field names to inspect.")] = [],
+    profile: ProfileOption = None,
+) -> None:
+    """Describe fields for one Odoo model."""
+    try:
+        validate_model_name(model)
+        validated_fields = validate_field_names(fields) if fields else []
+        validated_profile = validate_profile_name(profile) if profile else None
+
+        connection = connect(validated_profile, [], None)
+        field_items = connection.model(model).fields(validated_fields or None)
+        if validated_fields and not field_items:
+            raise ValueError(f"No matching fields were found for model {model!r}.")
+
+        emit(
+            ctx,
+            {
+                "ok": True,
+                "action": "fields",
+                "model": model,
+                "profile": connection.profile_name,
+                "fields": field_items,
+                "items": field_items,
+            },
+        )
+    except Exception as exc:
+        fail(ctx, str(exc), details={"action": "fields", "model": model})
+
+
 @app.command("write-and-show")
 def write_and_show_record(
     ctx: typer.Context,

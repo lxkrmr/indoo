@@ -86,13 +86,19 @@ indoo doctor
 indoo show res.partner 1 name email
 ```
 
-6. Update a record and inspect the result:
+6. Inspect field metadata before writing:
+
+```bash
+indoo fields res.partner name email
+```
+
+7. Update a record and inspect the result:
 
 ```bash
 indoo write-and-show res.partner 1 name --value name="New Name"
 ```
 
-7. Discover the command shape at runtime:
+8. Discover the command shape at runtime:
 
 ```bash
 indoo describe write-and-show
@@ -163,6 +169,17 @@ Or pass the full context as JSON:
 ```bash
 indoo show sale.order 42 amount_total --context-json '{"lang":"de_DE"}'
 ```
+
+### `indoo fields`
+
+Describe model fields and their basic metadata.
+
+```bash
+indoo fields purchase.order
+indoo fields purchase.order name notes state
+```
+
+Use this to discover field types before writing data.
 
 ### `indoo write-and-show`
 

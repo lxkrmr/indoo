@@ -76,8 +76,33 @@ class OdooConnection:
             odoo.env.context.update(merged_context)
         return cls(profile_name=profile_name, profile=profile, context=merged_context, odoo=odoo)
 
+    def model(self, model: str) -> "ModelHandle":
+        return ModelHandle(self, model)
+
     def record(self, model: str, record_id: int) -> "RecordHandle":
         return RecordHandle(self, model, record_id)
+
+
+class ModelHandle:
+    def __init__(self, connection: OdooConnection, model: str) -> None:
+        self.connection = connection
+        self.model = model
+
+    @property
+    def _model(self) -> Any:
+        return self.connection.odoo.env[self.model]
+
+    def fields(self, field_names: list[str] | None = None) -> list[dict[str, Any]]:
+        raw_fields = self._model.fields_get(
+            field_names or None,
+            attributes=["string", "type", "required", "readonly", "relation", "selection"],
+        )
+        names = field_names or sorted(raw_fields)
+        if field_names:
+            missing = [name for name in field_names if name not in raw_fields]
+            if missing:
+                raise KeyError(f"Unknown fields: {', '.join(missing)}")
+        return [normalize_field_info(name, raw_fields[name]) for name in names]
 
 
 class RecordHandle:
@@ -115,6 +140,23 @@ def parse_odoo_url(url: str) -> tuple[str, str, int]:
         )
 
     return parsed.hostname, protocol, port
+
+
+def normalize_field_info(name: str, raw: dict[str, Any]) -> dict[str, Any]:
+    info: dict[str, Any] = {
+        "name": name,
+        "type": str(raw.get("type", "unknown")),
+        "string": str(raw.get("string") or name),
+        "required": bool(raw.get("required", False)),
+        "readonly": bool(raw.get("readonly", False)),
+    }
+    relation = raw.get("relation")
+    if relation:
+        info["relation"] = str(relation)
+    selection = raw.get("selection")
+    if selection:
+        info["selection"] = [list(item) for item in selection]
+    return info
 
 
 def serialize_mapping(values: dict[str, Any]) -> dict[str, Any]:

@@ -2,10 +2,27 @@ from __future__ import annotations
 
 import unittest
 
-from indoo.client import parse_odoo_url
+from indoo.client import normalize_field_info, parse_odoo_url
 
 
 class ClientTests(unittest.TestCase):
+    def test_normalize_field_info_keeps_useful_metadata(self) -> None:
+        info = normalize_field_info(
+            "state",
+            {
+                "type": "selection",
+                "string": "Status",
+                "required": False,
+                "readonly": True,
+                "selection": [("draft", "RFQ"), ("done", "Locked")],
+            },
+        )
+
+        self.assertEqual(info["name"], "state")
+        self.assertEqual(info["type"], "selection")
+        self.assertTrue(info["readonly"])
+        self.assertEqual(info["selection"], [["draft", "RFQ"], ["done", "Locked"]])
+
     def test_parse_odoo_url_maps_http_to_jsonrpc(self) -> None:
         host, protocol, port = parse_odoo_url("http://localhost:8069")
 

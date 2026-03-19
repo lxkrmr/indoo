@@ -31,6 +31,21 @@ COMMAND_SCHEMAS: dict[str, dict[str, Any]] = {
             "indoo show sale.order 42 name --context-json '{\"lang\":\"de_DE\"}'",
         ],
     },
+    "fields": {
+        "summary": "Describe model fields and their basic metadata.",
+        "arguments": [
+            {"name": "model", "type": "string", "required": True},
+            {"name": "fields", "type": "string[]", "required": False},
+        ],
+        "options": [
+            {"name": "--profile", "type": "string", "required": False, "description": "Override the active profile."},
+            {"name": "--output", "type": "json|text|ndjson", "required": False, "description": "Choose the output format."},
+        ],
+        "examples": [
+            "indoo fields purchase.order",
+            "indoo fields purchase.order name notes state",
+        ],
+    },
     "write-and-show": {
         "summary": "Write values to one record and read selected fields again.",
         "arguments": [

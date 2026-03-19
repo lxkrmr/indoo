@@ -61,6 +61,26 @@ def default_text(payload: dict[str, Any]) -> str:
         model = payload.get("model")
         record_id = payload.get("id")
         return f"Read {model}#{record_id}"
+    if action == "fields":
+        model = payload.get("model")
+        fields = payload.get("fields", [])
+        lines = [str(model)]
+        for field in fields:
+            parts = [f"- {field['name']}: {field['type']}"]
+            if field.get("relation"):
+                parts.append(f"-> {field['relation']}")
+            flags: list[str] = []
+            if field.get("required"):
+                flags.append("required")
+            if field.get("readonly"):
+                flags.append("readonly")
+            if field.get("selection"):
+                options = ", ".join(item[0] for item in field["selection"])
+                flags.append(f"[{options}]")
+            if flags:
+                parts.append(", ".join(flags))
+            lines.append(" ".join(parts))
+        return "\n".join(lines)
     if action == "write_and_show":
         model = payload.get("model")
         record_id = payload.get("id")
