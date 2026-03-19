@@ -8,6 +8,7 @@ from urllib.parse import urlparse
 import odoorpc
 
 from .config import ConnectionProfile
+from .validation import validate_json_value, validate_string_value
 
 
 def parse_context(values: list[str]) -> dict[str, Any]:
@@ -27,18 +28,21 @@ def parse_assignments(values: list[str]) -> dict[str, Any]:
 
 
 def split_assignment(item: str) -> tuple[str, str]:
+    validate_string_value(item, label="Assignment")
     if "=" not in item:
         raise ValueError(f"Expected KEY=VALUE, got: {item!r}")
     key, value = item.split("=", 1)
     key = key.strip()
     if not key:
         raise ValueError(f"Expected non-empty key in assignment: {item!r}")
+    validate_string_value(key, label="Assignment key")
     return key, value.strip()
 
 
 def coerce_value(raw_value: str) -> Any:
+    validate_string_value(raw_value, label="Value")
     try:
-        return json.loads(raw_value)
+        return validate_json_value(json.loads(raw_value), label="JSON value")
     except json.JSONDecodeError:
         lowered = raw_value.lower()
         if lowered == "true":
