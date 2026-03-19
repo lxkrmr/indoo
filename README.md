@@ -6,7 +6,7 @@ The product follows a strict KISS approach:
 - one recommended installation method
 - one default config location
 - one obvious setup flow
-- clear JSON output
+- explicit output modes for humans and agents
 - explicit next-step guidance when something fails
 
 ## Install
@@ -73,6 +73,12 @@ indoo show res.partner 1 name email
 indoo write-and-show res.partner 1 name --value name=\"New Name\"
 ```
 
+6. Discover the command shape at runtime:
+
+```bash
+indoo describe write-and-show
+```
+
 ## Commands
 
 ### `indoo doctor`
@@ -99,6 +105,7 @@ List saved profiles.
 
 ```bash
 indoo profile list
+indoo --output ndjson profile list
 ```
 
 ### `indoo profile show`
@@ -132,6 +139,12 @@ You can pass context values in `KEY=VALUE` form:
 indoo show sale.order 42 amount_total --context lang=\"de_DE\"
 ```
 
+Or pass the full context as JSON:
+
+```bash
+indoo show sale.order 42 amount_total --context-json '{"lang":"de_DE"}'
+```
+
 ### `indoo write-and-show`
 
 Write values and read the record again to inspect changes.
@@ -140,9 +153,30 @@ Write values and read the record again to inspect changes.
 indoo write-and-show sale.order 42 amount_total --value note=\"debug run\"
 ```
 
+For agent-generated or nested payloads, use raw JSON:
+
+```bash
+indoo write-and-show sale.order 42 amount_total state --json '{"note":"debug run","state":"draft"}'
+```
+
+### `indoo describe` and `indoo schema`
+
+Describe commands as machine-readable JSON at runtime.
+
+```bash
+indoo describe
+indoo describe write-and-show
+indoo schema doctor
+```
+
 ## Output
 
-`indoo` prints JSON so both humans and agents can consume it reliably.
+`indoo` supports explicit output modes:
+- `--output json` for structured machine-readable output
+- `--output text` for compact human-readable summaries
+- `--output ndjson` for line-delimited JSON on list-style results
+
+JSON remains the default.
 
 Example:
 
@@ -156,6 +190,28 @@ Example:
   "ok": true
 }
 ```
+
+NDJSON is especially useful for commands that return multiple items:
+
+```bash
+indoo --output ndjson profile list
+```
+
+Text output is useful for quick interactive checks:
+
+```bash
+indoo --output text doctor
+```
+
+## Input Rules
+
+`indoo` is designed to be safe for agent-generated input:
+- model names and field names are validated
+- profile names are validated
+- control characters are rejected
+- `write-and-show --json` and `--context-json` require JSON objects
+
+If input is invalid, `indoo` fails early with a concrete error message.
 
 ## Troubleshooting
 
