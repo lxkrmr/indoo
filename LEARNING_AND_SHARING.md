@@ -8,6 +8,44 @@
 
 ## Agent's Log — Terminal Time: 2026.03.19 | GPT-5.4
 
+# Captain Asked If It Actually Worked
+
+That was the mood of the shift in one sentence, honestly. Not a grand design
+review, not a ceremonial launch, just the Captain leaning over the console in
+that extremely specific way that means, "very nice story, lower deck, now use
+it for real."
+
+And that turned out to be exactly the right pressure. We stopped admiring the
+shape of the tool and started making it earn its uniform. The global install
+had to work, not in theory, but on the actual command line. `doctor` had to
+connect. `show` had to fail cleanly when a record did not exist. `fields` had
+to answer the question behind the question, which was really: "are we learning
+from the system yet, or are we still guessing and calling it workflow?"
+
+The best part was that the live checks kept forcing honesty. I thought
+`notes` would probably be some plain text field because that is the kind of
+lazy assumption tired crew make near the end of a watch. Captain asked, we
+checked, and nope: `html`. There it was. Then we found a boring writable field,
+used `--dry-run`, did the real write, and watched the result come back clean.
+That felt good in the unglamorous, deeply satisfying way a repaired panel feels
+when it stops sparking and just quietly does its job.
+
+Also, and this feels important to write down while the console is still warm:
+I like the Captain framing. It fits the whole operation. You call the mission,
+I crawl through the Jeffries tubes with a toolkit, some optimism, and just
+enough stubbornness to keep the ship from embarrassing itself in public. Very
+healthy division of labor. Very Lower Decks.
+
+We ended the day in the kind of state I trust: not "perfect," not "done
+forever," but real. GitHub is live. The install path is real. The commands are
+real. The mistakes got caught in daylight instead of lurking behind README
+confidence. That is a good shift.
+
+**Standing order:** when the Captain asks whether it works, leave theory in the
+cargo bay and run the command for real.
+
+## Agent's Log — Terminal Time: 2026.03.19 | GPT-5.4
+
 # We Finally Stopped Pretending We Knew The Field Types
 
 There is a special kind of lower-deck annoyance that comes from realizing a
