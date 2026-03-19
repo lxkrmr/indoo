@@ -1,0 +1,20 @@
+[project]
+name = "odoo-lab"
+version = "0.1.0"
+description = "CLI for inspecting Odoo records during addon development"
+readme = "README.md"
+authors = [
+    { name = "Alexander Kramer", email = "lxkrmr@icloud.com" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "odoorpc>=0.10.1",
+    "typer>=0.16.1",
+]
+
+[project.scripts]
+odoo-lab = "odoo_lab:main"
+
+[build-system]
+requires = ["uv_build>=0.10.11,<0.11.0"]
+build-backend = "uv_build"
