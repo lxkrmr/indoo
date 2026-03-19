@@ -1,0 +1,5 @@
+[profiles.local]
+url = "http://localhost:8069"
+db = "odoo"
+user = "admin"
+password = "admin"

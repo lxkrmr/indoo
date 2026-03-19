@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from typing import Annotated, Any
 
 import typer
@@ -14,8 +15,8 @@ def _emit(payload: dict[str, Any]) -> None:
     typer.echo(json.dumps(payload, indent=2, sort_keys=True))
 
 
-def _connect(context_items: list[str]) -> Lab:
-    config = LabConfig.from_env()
+def _connect(profile: str, config_path: Path | None, context_items: list[str]) -> Lab:
+    config = LabConfig.from_profile(profile=profile, config_path=config_path)
     context = parse_context(context_items) if context_items else None
     return Lab(config=config, context=context)
 
@@ -43,19 +44,38 @@ ValueOption = Annotated[
     ),
 ]
 
+ProfileOption = Annotated[
+    str,
+    typer.Option(
+        "--profile",
+        "-p",
+        help="Connection profile from .odoo-lab.toml.",
+    ),
+]
+
+ConfigOption = Annotated[
+    Path | None,
+    typer.Option(
+        "--config",
+        help="Path to the profile config file. Defaults to .odoo-lab.toml.",
+    ),
+]
+
 
 @app.command("show")
 def show_record(
     model: Annotated[str, typer.Argument(help="Technical model name, e.g. sale.order.")],
     record_id: Annotated[int, typer.Argument(help="Record ID to inspect.")],
     fields: FieldArgument,
+    profile: ProfileOption = "local",
+    config_path: ConfigOption = None,
     context_items: ContextOption = [],
 ) -> None:
     """Read selected fields from a single record."""
     if not fields:
         raise typer.BadParameter("Provide at least one field to inspect.")
 
-    lab = _connect(context_items)
+    lab = _connect(profile, config_path, context_items)
     record = lab.record(model, record_id)
     _emit(
         {
@@ -63,6 +83,7 @@ def show_record(
             "action": "show",
             "model": model,
             "id": record_id,
+            "profile": profile,
             "fields": fields,
             "context": lab.context,
             "record": record.read(fields),
@@ -76,6 +97,8 @@ def write_and_show_record(
     record_id: Annotated[int, typer.Argument(help="Record ID to mutate.")],
     fields: FieldArgument,
     values: ValueOption,
+    profile: ProfileOption = "local",
+    config_path: ConfigOption = None,
     context_items: ContextOption = [],
 ) -> None:
     """Write values, then re-read selected fields to inspect recomputation effects."""
@@ -84,7 +107,7 @@ def write_and_show_record(
     if not values:
         raise typer.BadParameter("Provide at least one --value assignment.")
 
-    lab = _connect(context_items)
+    lab = _connect(profile, config_path, context_items)
     record = lab.record(model, record_id)
     parsed_values = parse_assignments(values)
     before = record.read(fields)
@@ -103,6 +126,7 @@ def write_and_show_record(
             "action": "write_and_show",
             "model": model,
             "id": record_id,
+            "profile": profile,
             "context": lab.context,
             "write": parsed_values,
             "fields": fields,

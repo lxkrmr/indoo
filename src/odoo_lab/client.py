@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import json
-import os
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 import odoorpc
+import tomllib
 
 
 def parse_context(values: list[str]) -> dict[str, Any]:
@@ -48,12 +49,32 @@ class LabConfig:
     password: str
 
     @classmethod
-    def from_env(cls) -> "LabConfig":
+    def from_profile(
+        cls,
+        profile: str,
+        config_path: Path | None = None,
+    ) -> "LabConfig":
+        path = config_path or Path(".odoo-lab.toml")
+        if not path.exists():
+            raise FileNotFoundError(
+                f"Profile config file not found: {path}. "
+                "Create .odoo-lab.toml or pass --config."
+            )
+
+        data = tomllib.loads(path.read_text())
+        try:
+            profile_data = data["profiles"][profile]
+        except KeyError as exc:
+            raise KeyError(
+                f"Profile {profile!r} not found in {path}. "
+                "Add it under [profiles.<name>]."
+            ) from exc
+
         return cls(
-            url=os.environ.get("ODOO_URL", "http://localhost:8069"),
-            db=os.environ.get("ODOO_DB", "odoo"),
-            user=os.environ.get("ODOO_USER", "admin"),
-            password=os.environ.get("ODOO_PASSWORD", "admin"),
+            url=profile_data["url"],
+            db=profile_data["db"],
+            user=profile_data["user"],
+            password=profile_data["password"],
         )
 
 
