@@ -159,6 +159,12 @@ For agent-generated or nested payloads, use raw JSON:
 indoo write-and-show sale.order 42 amount_total state --json '{"note":"debug run","state":"draft"}'
 ```
 
+For all mutating commands, prefer `--dry-run` first:
+
+```bash
+indoo write-and-show sale.order 42 amount_total state --json '{"state":"draft"}' --dry-run
+```
+
 ### `indoo describe` and `indoo schema`
 
 Describe commands as machine-readable JSON at runtime.
@@ -210,6 +216,7 @@ indoo --output text doctor
 - profile names are validated
 - control characters are rejected
 - `write-and-show --json` and `--context-json` require JSON objects
+- mutating commands support `--dry-run` so writes can be validated before execution
 
 If input is invalid, `indoo` fails early with a concrete error message.
 
