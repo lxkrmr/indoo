@@ -1,110 +1,39 @@
-# PLAN
+# Plan
 
-## Ziel
+## Goal
 
-Kleines lokales Tool fuer Odoo-Entwicklung bauen, das Boilerplate fuer Record-Inspektion abnimmt.
+Build `indoo` as a small local CLI that removes Odoo inspection boilerplate during addon development.
 
-Schwerpunkt:
-- konkrete Records anschauen
-- computed fields pruefen
-- `@api.depends`-Verhalten nachvollziehen
-- Werte schreiben und direkt danach erneut lesen
-- Ergebnisse leicht als JSON mit Codex teilen
+## Product Direction
 
-## Entscheidungen
+- product name: `indoo`
+- strict KISS approach
+- one clear workflow over multiple competing paths
+- global installation via `uv tool install`
+- global config file with named profiles
+- `indoo doctor` as the main onboarding and recovery command
+- CLI-first discoverability for both humans and agents
 
-- Python-Projekt mit `uv`
-- CLI mit `typer`
-- Odoo-Zugriff vorerst ueber `odoorpc`
-- Output ist MCP-inspiriert: strukturiertes JSON
-- Verbindung nur ueber projektlokale Profile
-- keine globalen Env Vars
-- kein Fallback-System
+## Current Scope
 
-## Verbindungsmodell
+- inspect concrete records
+- pass explicit Odoo context values
+- write values and read the result again
+- keep output easy to share as JSON
 
-Es gibt genau einen Weg:
+## Working Rules
 
-Projektdatei `.odoo-lab.toml`
+- repository-facing text is English
+- conversations with the user may be German
+- commit messages are English Conventional Commits with scope
+- keep commits small and meaningful
+- the agent may commit directly
+- the user handles pushing
 
-Beispiel:
+## Near-Term Priorities
 
-```toml
-[profiles.local]
-url = "http://localhost:8069"
-db = "odoo"
-user = "admin"
-password = "admin"
-```
-
-Verwendung:
-
-```bash
-uv run odoo-lab show res.partner 1 name --profile local
-```
-
-## Bereits umgesetzt
-
-- `uv`-Projekt initialisiert
-- lokale virtuelle Umgebung ueber `uv sync`
-- CLI-Binary `odoo-lab`
-- Command `show`
-- Command `write-and-show`
-- Parsing fuer `--value key=value`
-- Parsing fuer `--context key=value`
-- JSON-Ausgabe fuer Records und Before/After-Vergleiche
-- Beispiel-Datei `.odoo-lab.example.toml`
-- README mit aktueller Nutzung
-
-## Relevante Dateien
-
-- `pyproject.toml`
-- `src/odoo_lab/client.py`
-- `src/odoo_lab/cli.py`
-- `README.md`
-- `.odoo-lab.example.toml`
-
-## Aktueller CLI-Stand
-
-Show:
-
-```bash
-uv run odoo-lab show your.model 42 field_x computed_y --profile local
-```
-
-Write and show:
-
-```bash
-uv run odoo-lab write-and-show your.model 42 field_x computed_y --profile local --value field_x=10
-```
-
-## Was noch offen ist
-
-1. Echte `.odoo-lab.toml` im Projekt anlegen
-2. Gegen lokales Odoo verbinden
-3. Mit echten Records testen
-4. Pruefen, ob `write-and-show` fuer euren `@api.depends`-Workflow schon reicht
-5. Danach entscheiden, was als Naechstes am meisten hilft
-
-Moegliche naechste Features:
-- `ping` oder `whoami`
-- `ref <xmlid>`
-- `search`
-- lesbarere Ausgabe fuer Relations
-- Diff-Ausgabe noch kompakter machen
-- kleine gespeicherte Debug-Cases
-
-## Commits bisher
-
-- `5263900` `chore(project): initialize uv workspace`
-- `d62441d` `feat(cli): add Odoo record inspection commands`
-- `a48b2e5` `docs(readme): add local usage examples`
-- `0f7bd88` `feat(config): load Odoo connections from local profiles`
-
-## Wichtig fuer morgen
-
-- Nutzer moechte kleine sinnvolle Commits
-- Commit-Format: Conventional Commits mit Scope
-- Committen ist erlaubt
-- Push macht der Nutzer selbst
-- ein klarer Weg ist wichtiger als mehrere Optionen
+1. Rename the CLI to `indoo`
+2. Use one config path per platform
+3. Add profile management commands
+4. Add `doctor`
+5. Keep the README product-ready
