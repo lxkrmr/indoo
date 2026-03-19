@@ -64,6 +64,8 @@ def default_text(payload: dict[str, Any]) -> str:
     if action == "write_and_show":
         model = payload.get("model")
         record_id = payload.get("id")
+        if payload.get("dry_run"):
+            return f"Validated write for {model}#{record_id}. No changes were applied."
         changed = payload.get("changed", {})
         return f"Updated {model}#{record_id}. Changed fields: {', '.join(changed) or 'none'}"
     return json.dumps(payload, sort_keys=True)

@@ -41,6 +41,7 @@ COMMAND_SCHEMAS: dict[str, dict[str, Any]] = {
         "options": [
             {"name": "--value", "type": "key=value[]", "required": False, "description": "Write one or more flat assignments."},
             {"name": "--json", "type": "object", "required": False, "description": "Pass the full write payload as JSON."},
+            {"name": "--dry-run", "type": "boolean", "required": False, "description": "Validate and preview the write without mutating data."},
             {"name": "--context", "type": "key=value[]", "required": False, "description": "Add Odoo context values."},
             {"name": "--context-json", "type": "object", "required": False, "description": "Pass the full Odoo context as JSON."},
             {"name": "--profile", "type": "string", "required": False, "description": "Override the active profile."},
@@ -49,6 +50,7 @@ COMMAND_SCHEMAS: dict[str, dict[str, Any]] = {
         "examples": [
             "indoo write-and-show sale.order 42 amount_total --value note='debug'",
             "indoo write-and-show sale.order 42 amount_total --json '{\"note\":\"debug\",\"state\":\"draft\"}'",
+            "indoo write-and-show sale.order 42 amount_total --json '{\"state\":\"draft\"}' --dry-run",
         ],
     },
     "profile": {

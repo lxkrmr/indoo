@@ -142,6 +142,14 @@ WriteJsonOption = Annotated[
     ),
 ]
 
+DryRunOption = Annotated[
+    bool,
+    typer.Option(
+        "--dry-run",
+        help="Validate and preview the write without applying it.",
+    ),
+]
+
 ProfileOption = Annotated[
     str | None,
     typer.Option(
@@ -235,6 +243,7 @@ def write_and_show_record(
     fields: FieldArgument,
     values: ValueOption = [],
     write_json: WriteJsonOption = None,
+    dry_run: DryRunOption = False,
     profile: ProfileOption = None,
     context_items: ContextOption = [],
     context_json: ContextJsonOption = None,
@@ -253,6 +262,26 @@ def write_and_show_record(
         record = connection.record(model, record_id)
         parsed_values = parse_json_object(write_json, label="Write JSON") if write_json else parse_assignments(values)
         before = record.read(validated_fields)
+        if dry_run:
+            emit(
+                ctx,
+                {
+                    "ok": True,
+                    "action": "write_and_show",
+                    "dry_run": True,
+                    "model": model,
+                    "id": record_id,
+                    "profile": connection.profile_name,
+                    "context": connection.context,
+                    "write": parsed_values,
+                    "fields": validated_fields,
+                    "before": before,
+                    "message": "Write validated. No changes were applied.",
+                    "next_command": f"indoo write-and-show {model} {record_id} {' '.join(validated_fields)} --profile {connection.profile_name}",
+                },
+            )
+            return
+
         record.write(parsed_values)
         after = record.read(validated_fields)
 
@@ -267,6 +296,7 @@ def write_and_show_record(
             {
                 "ok": True,
                 "action": "write_and_show",
+                "dry_run": False,
                 "model": model,
                 "id": record_id,
                 "profile": connection.profile_name,

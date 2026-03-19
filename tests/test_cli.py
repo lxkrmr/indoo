@@ -185,6 +185,35 @@ password = "admin"
         self.assertEqual(payload["write"], {"state": "sale"})
         record.write.assert_called_once_with({"state": "sale"})
 
+    def test_write_and_show_supports_dry_run(self) -> None:
+        record = Mock()
+        record.read.return_value = {"amount_total": 10, "state": "draft"}
+        connection = Mock()
+        connection.profile_name = "local"
+        connection.context = {}
+        connection.record.return_value = record
+
+        with patch("indoo.cli.connect", return_value=connection):
+            result = self.runner.invoke(
+                app,
+                [
+                    "write-and-show",
+                    "sale.order",
+                    "42",
+                    "amount_total",
+                    "state",
+                    "--json",
+                    '{"state":"sale"}',
+                    "--dry-run",
+                ],
+            )
+
+        self.assertEqual(result.exit_code, 0, result.stdout)
+        payload = json.loads(result.stdout)
+        self.assertTrue(payload["dry_run"])
+        self.assertEqual(payload["before"], {"amount_total": 10, "state": "draft"})
+        record.write.assert_not_called()
+
     def test_write_and_show_rejects_value_and_json_together(self) -> None:
         result = self.runner.invoke(
             app,
