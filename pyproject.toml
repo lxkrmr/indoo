@@ -1,7 +1,7 @@
 [project]
-name = "odoo-lab"
+name = "indoo"
 version = "0.1.0"
-description = "CLI for inspecting Odoo records during addon development"
+description = "Agent-friendly CLI for inspecting Odoo records during addon development"
 readme = "README.md"
 authors = [
     { name = "Alexander Kramer", email = "lxkrmr@icloud.com" }
@@ -13,7 +13,7 @@ dependencies = [
 ]
 
 [project.scripts]
-odoo-lab = "odoo_lab:main"
+indoo = "indoo:main"
 
 [build-system]
 requires = ["uv_build>=0.10.11,<0.11.0"]
