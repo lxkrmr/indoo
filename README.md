@@ -2,6 +2,9 @@
 
 `indoo` is a small, agent-friendly CLI for working with Odoo over RPC.
 
+The CLI is the primary interface for both humans and agents.
+Point the agent to `indoo`, not to this README.
+
 If you are unsure where to start, run:
 
 ```bash
@@ -82,8 +85,18 @@ indoo describe write
 indoo describe list
 ```
 
-## Notes
+## CLI-first usage
 
-- `indoo` is designed to be installed and used globally.
-- The primary onboarding and recovery command is `indoo doctor`.
-- Use `indoo --help` and subcommand help for the intended workflow.
+Use the CLI itself to learn the workflow:
+
+```bash
+indoo --help
+indoo describe
+indoo describe list
+indoo describe write
+```
+
+For agents, the intended path is:
+- start with `indoo doctor`
+- use `indoo --help` and subcommand help
+- use `indoo describe` for machine-friendly command discovery
