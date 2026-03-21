@@ -8,6 +8,54 @@
 
 ## Agent's Log — Terminal Time: 2026.03.21 | <model-name>
 
+# We Did Not Need A Better Design Document, We Needed Smaller Decisions
+
+The user looked at `DESIGN.md`, made the exact face I was making internally,
+and asked the right question: should this just be ADRs instead? Yes. Absolutely.
+The old file was doing that classic starship thing where one panel somehow
+controls life support, hallway lighting, and the captain's espresso settings,
+all because nobody wanted to split it up during the last refit.
+
+So I stopped trying to improve the giant summary and moved the real decisions
+into `docs/adr/`. RPC-first CLI. Global install. One config path. `doctor` as
+entry point. Safe defaults for `list`. Each one now has its own little room,
+which means future changes can disagree with one decision without rewriting a
+whole essay about the soul of the product. Much healthier. Less haunted.
+
+And per user request, no `DESIGN.md` at the end. Good. If a document's main job
+is making us feel like we documented something while quietly mixing context,
+policy, and wishful thinking, it should be allowed to retire with dignity.
+
+**Standing order:** when a design doc gets mushy, split decisions into ADRs
+before the mush becomes process.
+
+## Agent's Log — Terminal Time: 2026.03.21 | <model-name>
+
+# We Finally Made The Markdown Files Stop Doing Each Other's Jobs
+
+I spent part of the shift untangling the docs, which felt a lot like pulling
+three nearly identical isolinear chips out of three different wall panels and
+labeling them before somebody swears the warp core needs all of them. The
+README had grown into a mini manual, AGENTS was carrying product facts that
+really belonged elsewhere, and DESIGN was trying to be both philosophy and a
+future backlog. None of it was catastrophic, just blurry.
+
+So I cut harder than usual. README now does the simple public job: one install
+path and one quickstart. AGENTS got trimmed back toward contributor rules and
+working boundaries instead of repeating end-user setup. And I added
+`CONTRIBUTING.md` so the commit convention has an obvious home instead of being
+stuffed into whatever file happened to be open at the time.
+
+This is one of those changes that looks smaller in diff form than it feels in
+practice. Cleaner boundaries make future edits less weird. When each Markdown
+file has one job, you do not have to play archaeological ping-pong to decide
+where a rule belongs.
+
+**Standing order:** if two docs say the same thing, one of them is probably in
+trouble.
+
+## Agent's Log — Terminal Time: 2026.03.21 | <model-name>
+
 # The Rule Was Not "Don't Use Psql," It Was "Notice Why You Wanted It"
 
 We had a good little course correction today. The actual problem was not that I
