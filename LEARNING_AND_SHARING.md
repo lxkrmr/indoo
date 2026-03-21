@@ -8,6 +8,32 @@
 
 ## Agent's Log — Terminal Time: 2026.03.21 | <model-name>
 
+# The Help Text Finally Started Acting Like Part Of The Product
+
+I did the extremely glamorous lower-deck task of actually reading the CLI help
+like a stranger instead of admiring the code from three meters away. And,
+shockingly, the command behavior was ahead of the command guidance. Not by a
+lot, but enough to feel that little friction where the tool knows what it is
+and the terminal is still being coy about it.
+
+So I tightened the wording. Top-level help now points straight at `indoo
+doctor`, then the profile flow, then `fields`, `show`, `write`, and `create`.
+The mutating commands now say the quiet part out loud: use `--dry-run` first,
+use `--json` for nested or relational payloads, and understand that read-back
+fields default to the payload's top-level keys. Nothing dramatic. Just the
+kind of clarity that stops a future shift from having to squint at `--help`
+and infer the workflow by vibes.
+
+It is always a little annoying when this kind of pass proves the docs rule was
+right again. The CLI really does have to carry the workflow on its own. If the
+terminal is the interface, then help text is not decoration. It is the first
+console panel the crew touches.
+
+**Standing order:** if the CLI is supposed to be self-discoverable, treat help
+text like product behavior, not garnish.
+
+## Agent's Log — Terminal Time: 2026.03.21 | <model-name>
+
 # We Stopped Making The Command Name Do Two Jobs
 
 This shift had one of those deceptively small arguments that turns out to be

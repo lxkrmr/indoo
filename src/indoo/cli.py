@@ -19,10 +19,18 @@ from .validation import (
 )
 
 app = typer.Typer(
-    help="Indoo is a small CLI for inspecting and updating Odoo records.",
+    help=(
+        "Indoo is a small CLI for inspecting and updating Odoo records. "
+        "Start with 'indoo doctor'. Then add a profile, inspect fields with "
+        "'indoo fields', read records with 'indoo show', and mutate data "
+        "with 'indoo write' or 'indoo create'."
+    ),
     no_args_is_help=True,
 )
-profile_app = typer.Typer(help="Manage Odoo connection profiles.", no_args_is_help=True)
+profile_app = typer.Typer(
+    help="Manage Odoo connection profiles. Start with 'indoo profile add ...'.",
+    no_args_is_help=True,
+)
 app.add_typer(profile_app, name="profile")
 
 
@@ -151,7 +159,7 @@ ValueOption = Annotated[
     typer.Option(
         "--value",
         "-v",
-        help="Value assignment in KEY=VALUE form. VALUE can be JSON.",
+        help="Value assignment in KEY=VALUE form for simple fields. VALUE can be JSON.",
     ),
 ]
 
@@ -159,7 +167,7 @@ WriteJsonOption = Annotated[
     str | None,
     typer.Option(
         "--json",
-        help="Full mutation payload as a JSON object.",
+        help="Full mutation payload as a JSON object. Use this for nested or relational values.",
     ),
 ]
 
@@ -167,7 +175,7 @@ DryRunOption = Annotated[
     bool,
     typer.Option(
         "--dry-run",
-        help="Validate and preview the mutation without applying it.",
+        help="Validate and preview the mutation without applying it. Recommended first for writes and creates.",
     ),
 ]
 
@@ -194,7 +202,7 @@ def describe_command(
     ctx: typer.Context,
     subject: Annotated[str | None, typer.Argument(help="Command or topic to describe.")] = None,
 ) -> None:
-    """Describe commands and their machine-friendly input shape."""
+    """Describe commands and their machine-friendly input shape for CLI-only discovery."""
     try:
         description = describe_subject(subject)
     except KeyError as exc:
@@ -229,7 +237,7 @@ def show_record(
     context_items: ContextOption = [],
     context_json: ContextJsonOption = None,
 ) -> None:
-    """Read selected fields from a single record."""
+    """Read selected fields from a single record. Use 'indoo fields MODEL' first if needed."""
     try:
         validate_model_name(model)
         validated_fields = validate_field_names(fields)
@@ -263,7 +271,7 @@ def fields_command(
     fields: Annotated[list[str], typer.Argument(help="Optional field names to inspect.")] = [],
     profile: ProfileOption = None,
 ) -> None:
-    """Describe fields for one Odoo model."""
+    """Describe fields for one Odoo model before writing or creating records."""
     try:
         validate_model_name(model)
         validated_fields = validate_field_names(fields) if fields else []
@@ -294,7 +302,10 @@ def write_record(
     ctx: typer.Context,
     model: Annotated[str, typer.Argument(help="Technical model name, for example sale.order.")],
     record_id: Annotated[int, typer.Argument(help="Record ID to update.")],
-    fields: FieldArgument = [],
+    fields: Annotated[
+        list[str],
+        typer.Argument(help="Fields to read back after the write. Defaults to the payload's top-level field names."),
+    ] = [],
     values: ValueOption = [],
     write_json: WriteJsonOption = None,
     dry_run: DryRunOption = False,
@@ -302,7 +313,7 @@ def write_record(
     context_items: ContextOption = [],
     context_json: ContextJsonOption = None,
 ) -> None:
-    """Write values to one record and confirm the resulting field values."""
+    """Write values to one record and confirm the result. Use --dry-run first for risky changes."""
     try:
         validate_model_name(model)
         validated_profile = validate_profile_name(profile) if profile else None
@@ -365,7 +376,10 @@ def write_record(
 def create_record(
     ctx: typer.Context,
     model: Annotated[str, typer.Argument(help="Technical model name, for example sale.order.")],
-    fields: FieldArgument = [],
+    fields: Annotated[
+        list[str],
+        typer.Argument(help="Fields to read back after create. Defaults to the payload's top-level field names."),
+    ] = [],
     values: ValueOption = [],
     create_json: WriteJsonOption = None,
     dry_run: DryRunOption = False,
@@ -373,7 +387,7 @@ def create_record(
     context_items: ContextOption = [],
     context_json: ContextJsonOption = None,
 ) -> None:
-    """Create one record and confirm the resulting field values."""
+    """Create one record and confirm the result. Use --json for nested or relational payloads."""
     try:
         validate_model_name(model)
         validated_profile = validate_profile_name(profile) if profile else None
@@ -427,7 +441,7 @@ def doctor(
     ctx: typer.Context,
     profile: ProfileOption = None,
 ) -> None:
-    """Check the current setup and suggest the next concrete step."""
+    """Check config, profile resolution, and Odoo connectivity. Start here when unsure."""
     config_path = default_config_path()
     details: dict[str, Any] = {
         "action": "doctor",
@@ -572,7 +586,7 @@ def profile_add(
     user: Annotated[str, typer.Option(help="Login user.")],
     password: Annotated[str, typer.Option(help="Login password.")],
 ) -> None:
-    """Create or update a profile and make it active."""
+    """Create or update a profile and make it active. Run 'indoo doctor' right after."""
     try:
         validated_name = validate_profile_name(name)
         validated_url = validate_string_value(url, label="Profile URL")
