@@ -19,6 +19,7 @@ Core principles:
 - `indoo doctor` as the main onboarding and recovery command
 - CLI-first discoverability for humans and agents
 - concise, explicit, stable output
+- predictable commands over clever shortcuts
 
 ## Implemented Decisions
 
@@ -102,16 +103,19 @@ Current default:
 This keeps the CLI machine-friendly by default while still allowing quick
 interactive usage.
 
-### Focused record inspection and update flow
+### Focused record inspection and mutation flow
 
 The current command set focuses on a small, concrete workflow:
 - inspect one record
-- write values
-- inspect the result again
+- inspect field metadata
+- write values or create a record
+- read back the result for confirmation
 
 Implemented commands:
 - `indoo show`
-- `indoo write-and-show`
+- `indoo fields`
+- `indoo write`
+- `indoo create`
 - `indoo describe`
 - `indoo schema`
 
@@ -120,15 +124,17 @@ Why:
   full Odoo shell
 - one narrow workflow is easier to explain and automate
 - agents benefit from commands with a tight, explicit contract
+- the command names should reflect the user intent, not internal sequencing
 
 ### Explicit context and JSON input
 
 `indoo` accepts context values as `KEY=VALUE` pairs or as full JSON.
-Write payloads can be passed as assignments or as full JSON objects.
+Mutation payloads can be passed as assignments or as full JSON objects.
 
 Why:
 - simple updates should stay easy to type
 - nested or agent-generated payloads need a raw JSON path
+- relational fields need a structured format for Odoo-style operations
 - supporting both forms avoids forcing every caller into one awkward input
   style while keeping the command surface small
 
@@ -215,12 +221,14 @@ without turning `indoo` into a general-purpose metadata dump.
 Possible direction:
 - use field metadata to warn about readonly fields
 - make `--dry-run` even more central in mutating flows
-- possibly surface clearer hints when a write targets a risky or unusual
-  field
+- possibly surface clearer hints when a write or create targets a risky or
+  unusual field
+- validate relational operation shapes even more aggressively when field
+  metadata is available
 
 Why:
-- `write-and-show` is intentionally simple, but write safety can be improved
-  without adding much conceptual weight
+- `write` and `create` are intentionally simple, but write safety can be
+  improved without adding much conceptual weight
 
 ### Better help text for fast CLI discovery
 

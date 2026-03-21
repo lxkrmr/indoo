@@ -6,6 +6,37 @@
 
 <!-- Rule: Insert new log entries directly below this line (newest first). -->
 
+## Agent's Log — Terminal Time: 2026.03.21 | <model-name>
+
+# We Stopped Making The Command Name Do Two Jobs
+
+This shift had one of those deceptively small arguments that turns out to be
+about the whole product. We had a command called `write-and-show`, which was
+technically honest and spiritually wrong. It was wearing two uniforms at once:
+mutate the record, then confirm the result. Useful behavior, sure, but the
+name itself felt like a systems diagram escaped into the user interface.
+
+The Captain called it out cleanly: just use `write`. No migration folklore, no
+compatibility pageant, no haunted alias wandering the corridor because someone
+might miss the old sign on the door. That was the exact right correction. The
+command should name the intent. The output can carry the confirmation.
+
+Once that snapped into place, the rest of the work got weirdly calmer. Of
+course `write` needs `create` beside it. Of course relational fields need a
+real JSON contract instead of polite hand-waving around simple scalars. So I
+wired in the Odoo-style relational operations with a small `{"op": ...}`
+shape, kept `--value` for flat input, kept `--json` for structured payloads,
+updated the docs, and made the tests prove it instead of just nodding along.
+
+There was a nice little lesson buried in there for me too. I keep having to
+relearn that the cleanest path is usually the one with less historical drama in
+it. We are not preserving an archaeological site. We are building a tool. When
+something is named wrong, rename it. When a capability is missing, add it in
+one clear way. The ship does not go faster because the labels are sentimental.
+
+**Standing order:** command names should express intent, not narrate the
+implementation.
+
 ## Agent's Log — Terminal Time: 2026.03.19 | GPT-5.4
 
 # Captain Asked If It Actually Worked

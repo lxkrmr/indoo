@@ -3,6 +3,8 @@
 `indoo` is a small, agent-friendly CLI for inspecting and updating Odoo
 records.
 
+If you are unsure where to start, run `indoo doctor` first.
+
 The product follows a strict KISS approach:
 - one recommended installation method
 - one default config location
@@ -13,6 +15,7 @@ The product follows a strict KISS approach:
 ## Install
 
 Use `uv tool install` as the default installation method.
+This keeps the install path easy to remember across machines.
 
 Install from GitHub over HTTPS:
 
@@ -27,6 +30,7 @@ uv tool install git+ssh://git@github.com/lxkrmr/indoo.git
 ```
 
 After installation, the `indoo` command is available globally.
+That makes it easy to call from both terminals and agents.
 
 To refresh an existing installation from GitHub:
 
@@ -95,13 +99,20 @@ indoo fields res.partner name email
 7. Update a record and inspect the result:
 
 ```bash
-indoo write-and-show res.partner 1 name --value name="New Name"
+indoo write res.partner 1 name --value name="New Name"
 ```
 
-8. Discover the command shape at runtime:
+8. Create a record:
 
 ```bash
-indoo describe write-and-show
+indoo create res.partner name --value name="Acme"
+```
+
+9. Discover the command shape at runtime:
+
+```bash
+indoo describe write
+indoo describe create
 ```
 
 ## Commands
@@ -181,25 +192,74 @@ indoo fields purchase.order name notes state
 
 Use this to discover field types before writing data.
 
-### `indoo write-and-show`
+### `indoo write`
 
-Write values and read the record again to inspect changes.
-
-```bash
-indoo write-and-show sale.order 42 amount_total --value note="debug run"
-```
-
-For agent-generated or nested payloads, use raw JSON:
+Write values and read back selected fields.
 
 ```bash
-indoo write-and-show sale.order 42 amount_total state --json '{"note":"debug run","state":"draft"}'
+indoo write sale.order 42 amount_total --value note="debug run"
 ```
+
+For agent-generated, nested, or relational payloads, use raw JSON:
+
+```bash
+indoo write sale.order 42 amount_total state --json '{"note":"debug run","state":"draft"}'
+```
+
+Relational fields accept Odoo-style operations through a small JSON contract:
+
+```bash
+indoo write sale.order 42 --json '{
+  "tag_ids": [
+    {"op": "set", "ids": [1, 2, 3]}
+  ],
+  "order_line": [
+    {"op": "create", "values": {"name": "Line A"}},
+    {"op": "update", "id": 10, "values": {"name": "Updated"}},
+    {"op": "unlink", "id": 11}
+  ]
+}'
+```
+
+Supported relational operations:
+- `create`
+- `update`
+- `delete`
+- `unlink`
+- `link`
+- `clear`
+- `set`
+
+If you do not pass explicit read-back fields, `indoo write` reads back the
+payload's top-level field names.
 
 For all mutating commands, prefer `--dry-run` first:
 
 ```bash
-indoo write-and-show sale.order 42 amount_total state --json '{"state":"draft"}' --dry-run
+indoo write sale.order 42 amount_total state --json '{"state":"draft"}' --dry-run
 ```
+
+### `indoo create`
+
+Create one record and read back selected fields.
+
+```bash
+indoo create res.partner name --value name="Acme"
+```
+
+You can also create nested relational data with JSON:
+
+```bash
+indoo create sale.order --json '{
+  "partner_id": 7,
+  "order_line": [
+    {"op": "create", "values": {"name": "Line A"}}
+  ]
+}'
+```
+
+If you do not pass explicit read-back fields, `indoo create` reads back the
+payload's top-level field names.
 
 ### `indoo describe` and `indoo schema`
 
@@ -207,7 +267,8 @@ Describe commands as machine-readable JSON at runtime.
 
 ```bash
 indoo describe
-indoo describe write-and-show
+indoo describe write
+indoo describe create
 indoo schema doctor
 ```
 
@@ -251,7 +312,8 @@ indoo --output text doctor
 - model names and field names are validated
 - profile names are validated
 - control characters are rejected
-- `write-and-show --json` and `--context-json` require JSON objects
+- `write --json`, `create --json`, and `--context-json` require JSON objects
+- relational operations are only accepted through `--json`
 - mutating commands support `--dry-run` so writes can be validated before
   execution
 

@@ -1,0 +1,32 @@
+{
+  "artifact_type": "tool_intent",
+  "schema_version": 1,
+  "name": "indoo",
+  "summary": "Small, clear, agent-friendly CLI for working with Odoo.",
+  "pain": "Working with Odoo from the terminal is too ad hoc. Humans and agents need one obvious CLI-first workflow to inspect records, discover field metadata, validate setup, and make safe updates without guessing connection details or relying on Markdown docs.",
+  "users": [
+    "developers",
+    "agents"
+  ],
+  "scope": [
+    "CLI-first Odoo inspection and update workflow",
+    "doctor-led onboarding and recovery",
+    "named profiles with one active profile",
+    "machine-friendly JSON/text/ndjson output",
+    "field metadata discovery before writes"
+  ],
+  "out_of_scope": [
+    "full replacement for Odoo shell access",
+    "exposing every Odoo RPC operation",
+    "multiple competing install methods",
+    "multiple config locations or layered config resolution"
+  ],
+  "expected_mutations": true,
+  "needs_json_output": true,
+  "needs_tui": false,
+  "demo_feasible": true,
+  "open_questions": [
+    "Is write-and-show the right long-term mutating primitive, or should write safety become even more central without adding workflow sprawl?",
+    "Which additional discovery commands, if any, strengthen the one-obvious-workflow design instead of bloating it?"
+  ]
+}

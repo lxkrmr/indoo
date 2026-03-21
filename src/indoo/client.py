@@ -11,6 +11,9 @@ from .config import ConnectionProfile
 from .validation import validate_json_value, validate_string_value
 
 
+RELATIONAL_OPERATIONS = {"create", "update", "delete", "unlink", "link", "clear", "set"}
+
+
 def parse_context(values: list[str]) -> dict[str, Any]:
     context: dict[str, Any] = {}
     for item in values:
@@ -104,6 +107,9 @@ class ModelHandle:
                 raise KeyError(f"Unknown fields: {', '.join(missing)}")
         return [normalize_field_info(name, raw_fields[name]) for name in names]
 
+    def create(self, values: dict[str, Any]) -> int:
+        return int(self._model.create(transform_payload(values)))
+
 
 class RecordHandle:
     def __init__(self, connection: OdooConnection, model: str, record_id: int) -> None:
@@ -120,7 +126,7 @@ class RecordHandle:
         return serialize_mapping(data)
 
     def write(self, values: dict[str, Any]) -> None:
-        self._record.write(values)
+        self._record.write(transform_payload(values))
 
 
 def parse_odoo_url(url: str) -> tuple[str, str, int]:
@@ -157,6 +163,79 @@ def normalize_field_info(name: str, raw: dict[str, Any]) -> dict[str, Any]:
     if selection:
         info["selection"] = [list(item) for item in selection]
     return info
+
+
+def transform_payload(values: dict[str, Any]) -> dict[str, Any]:
+    return {key: transform_value(value, path=key) for key, value in values.items()}
+
+
+def transform_value(value: Any, *, path: str) -> Any:
+    if isinstance(value, dict):
+        return {key: transform_value(item, path=f"{path}.{key}") for key, item in value.items()}
+    if isinstance(value, list):
+        if is_relational_command_list(value):
+            return [transform_relational_command(item, path=path) for item in value]
+        return [transform_value(item, path=f"{path}[]") for item in value]
+    return value
+
+
+def is_relational_command_list(value: list[Any]) -> bool:
+    return bool(value) and all(isinstance(item, dict) and item.get("op") in RELATIONAL_OPERATIONS for item in value)
+
+
+def transform_relational_command(command: dict[str, Any], *, path: str) -> tuple[Any, ...]:
+    op = command.get("op")
+    if not isinstance(op, str) or op not in RELATIONAL_OPERATIONS:
+        raise ValueError(f"{path} contains unsupported relational operation: {op!r}")
+
+    allowed_keys = {
+        "create": {"op", "values"},
+        "update": {"op", "id", "values"},
+        "delete": {"op", "id"},
+        "unlink": {"op", "id"},
+        "link": {"op", "id"},
+        "clear": {"op"},
+        "set": {"op", "ids"},
+    }[op]
+    extra_keys = sorted(set(command) - allowed_keys)
+    if extra_keys:
+        raise ValueError(f"{path} operation {op!r} does not support keys: {', '.join(extra_keys)}")
+
+    if op == "create":
+        values = command.get("values")
+        if not isinstance(values, dict):
+            raise ValueError(f"{path} operation 'create' requires an object in 'values'.")
+        return (0, 0, transform_payload(values))
+
+    if op == "update":
+        record_id = require_positive_int(command.get("id"), path=path, key="id", op=op)
+        values = command.get("values")
+        if not isinstance(values, dict):
+            raise ValueError(f"{path} operation 'update' requires an object in 'values'.")
+        return (1, record_id, transform_payload(values))
+
+    if op == "delete":
+        return (2, require_positive_int(command.get("id"), path=path, key="id", op=op))
+
+    if op == "unlink":
+        return (3, require_positive_int(command.get("id"), path=path, key="id", op=op))
+
+    if op == "link":
+        return (4, require_positive_int(command.get("id"), path=path, key="id", op=op))
+
+    if op == "clear":
+        return (5,)
+
+    ids = command.get("ids")
+    if not isinstance(ids, list) or not ids:
+        raise ValueError(f"{path} operation 'set' requires a non-empty 'ids' list.")
+    return (6, 0, [require_positive_int(item, path=path, key="ids", op=op) for item in ids])
+
+
+def require_positive_int(value: Any, *, path: str, key: str, op: str) -> int:
+    if not isinstance(value, int) or value <= 0:
+        raise ValueError(f"{path} operation {op!r} requires a positive integer in '{key}'.")
+    return value
 
 
 def serialize_mapping(values: dict[str, Any]) -> dict[str, Any]:

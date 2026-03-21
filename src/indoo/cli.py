@@ -87,6 +87,21 @@ def parse_json_object(raw_json: str, *, label: str) -> dict[str, Any]:
     return validate_json_value(value, label=label)
 
 
+def parse_mutation_payload(values: list[str], mutation_json: str | None, *, label: str) -> dict[str, Any]:
+    if bool(values) == bool(mutation_json):
+        raise ValueError("Provide either --value or --json.")
+    return parse_json_object(mutation_json, label=label) if mutation_json else parse_assignments(values)
+
+
+def resolve_read_fields(fields: list[str], payload: dict[str, Any]) -> list[str]:
+    if fields:
+        return validate_field_names(fields)
+    payload_fields = [key for key in payload if "." not in key]
+    if not payload_fields:
+        raise ValueError("Provide at least one field to inspect.")
+    return validate_field_names(payload_fields)
+
+
 def build_profile_items(config: IndoConfig) -> list[dict[str, Any]]:
     return [
         {
@@ -144,7 +159,7 @@ WriteJsonOption = Annotated[
     str | None,
     typer.Option(
         "--json",
-        help="Full write payload as a JSON object.",
+        help="Full mutation payload as a JSON object.",
     ),
 ]
 
@@ -152,7 +167,7 @@ DryRunOption = Annotated[
     bool,
     typer.Option(
         "--dry-run",
-        help="Validate and preview the write without applying it.",
+        help="Validate and preview the mutation without applying it.",
     ),
 ]
 
@@ -274,12 +289,12 @@ def fields_command(
         fail(ctx, error_message(exc), details={"action": "fields", "model": model})
 
 
-@app.command("write-and-show")
-def write_and_show_record(
+@app.command("write")
+def write_record(
     ctx: typer.Context,
     model: Annotated[str, typer.Argument(help="Technical model name, for example sale.order.")],
     record_id: Annotated[int, typer.Argument(help="Record ID to update.")],
-    fields: FieldArgument,
+    fields: FieldArgument = [],
     values: ValueOption = [],
     write_json: WriteJsonOption = None,
     dry_run: DryRunOption = False,
@@ -287,26 +302,22 @@ def write_and_show_record(
     context_items: ContextOption = [],
     context_json: ContextJsonOption = None,
 ) -> None:
-    """Write values and read the record again to inspect changes."""
+    """Write values to one record and confirm the resulting field values."""
     try:
         validate_model_name(model)
-        validated_fields = validate_field_names(fields)
         validated_profile = validate_profile_name(profile) if profile else None
-        if not validated_fields:
-            raise ValueError("Provide at least one field to inspect.")
-        if bool(values) == bool(write_json):
-            raise ValueError("Provide either --value or --json.")
+        parsed_values = parse_mutation_payload(values, write_json, label="Write JSON")
+        validated_fields = resolve_read_fields(fields, parsed_values)
 
         connection = connect(validated_profile, context_items, context_json)
         record = connection.record(model, record_id)
-        parsed_values = parse_json_object(write_json, label="Write JSON") if write_json else parse_assignments(values)
         before = record.read(validated_fields)
         if dry_run:
             emit(
                 ctx,
                 {
                     "ok": True,
-                    "action": "write_and_show",
+                    "action": "write",
                     "dry_run": True,
                     "model": model,
                     "id": record_id,
@@ -316,7 +327,6 @@ def write_and_show_record(
                     "fields": validated_fields,
                     "before": before,
                     "message": "Write validated. No changes were applied.",
-                    "next_command": f"indoo write-and-show {model} {record_id} {' '.join(validated_fields)} --profile {connection.profile_name}",
                 },
             )
             return
@@ -334,7 +344,7 @@ def write_and_show_record(
             ctx,
             {
                 "ok": True,
-                "action": "write_and_show",
+                "action": "write",
                 "dry_run": False,
                 "model": model,
                 "id": record_id,
@@ -348,7 +358,68 @@ def write_and_show_record(
             },
         )
     except Exception as exc:
-        fail(ctx, error_message(exc), details={"action": "write_and_show", "model": model, "id": record_id})
+        fail(ctx, error_message(exc), details={"action": "write", "model": model, "id": record_id})
+
+
+@app.command("create")
+def create_record(
+    ctx: typer.Context,
+    model: Annotated[str, typer.Argument(help="Technical model name, for example sale.order.")],
+    fields: FieldArgument = [],
+    values: ValueOption = [],
+    create_json: WriteJsonOption = None,
+    dry_run: DryRunOption = False,
+    profile: ProfileOption = None,
+    context_items: ContextOption = [],
+    context_json: ContextJsonOption = None,
+) -> None:
+    """Create one record and confirm the resulting field values."""
+    try:
+        validate_model_name(model)
+        validated_profile = validate_profile_name(profile) if profile else None
+        parsed_values = parse_mutation_payload(values, create_json, label="Create JSON")
+        validated_fields = resolve_read_fields(fields, parsed_values)
+
+        connection = connect(validated_profile, context_items, context_json)
+        if dry_run:
+            emit(
+                ctx,
+                {
+                    "ok": True,
+                    "action": "create",
+                    "dry_run": True,
+                    "model": model,
+                    "profile": connection.profile_name,
+                    "context": connection.context,
+                    "create": parsed_values,
+                    "fields": validated_fields,
+                    "message": "Create validated. No changes were applied.",
+                },
+            )
+            return
+
+        model_handle = connection.model(model)
+        record_id = model_handle.create(parsed_values)
+        record = connection.record(model, record_id)
+        after = record.read(validated_fields)
+
+        emit(
+            ctx,
+            {
+                "ok": True,
+                "action": "create",
+                "dry_run": False,
+                "model": model,
+                "id": record_id,
+                "profile": connection.profile_name,
+                "context": connection.context,
+                "create": parsed_values,
+                "fields": validated_fields,
+                "record": after,
+            },
+        )
+    except Exception as exc:
+        fail(ctx, error_message(exc), details={"action": "create", "model": model})
 
 
 @app.command("doctor")

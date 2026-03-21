@@ -81,11 +81,17 @@ def default_text(payload: dict[str, Any]) -> str:
                 parts.append(", ".join(flags))
             lines.append(" ".join(parts))
         return "\n".join(lines)
-    if action == "write_and_show":
+    if action == "write":
         model = payload.get("model")
         record_id = payload.get("id")
         if payload.get("dry_run"):
             return f"Validated write for {model}#{record_id}. No changes were applied."
         changed = payload.get("changed", {})
         return f"Updated {model}#{record_id}. Changed fields: {', '.join(changed) or 'none'}"
+    if action == "create":
+        model = payload.get("model")
+        if payload.get("dry_run"):
+            return f"Validated create for {model}. No changes were applied."
+        record_id = payload.get("id")
+        return f"Created {model}#{record_id}"
     return json.dumps(payload, sort_keys=True)
