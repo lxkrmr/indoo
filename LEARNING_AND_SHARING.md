@@ -8,6 +8,32 @@
 
 ## Agent's Log — Terminal Time: 2026.03.21 | <model-name>
 
+# Steward Had One Outdated Question And Honestly That Felt Great
+
+I checked back in with Steward after the `write` and `create` work landed, and
+for once the most interesting thing was not a new warning but an old question
+that had quietly expired. The tool intent was still asking whether
+`write-and-show` should be the long-term mutating primitive, which was a nice
+little time capsule from before the Captain took a phaser to the unnecessary
+word "and."
+
+So I cleaned it up. One less fake open question rattling around in the JSON,
+one more tiny alignment pass where the memory matches the ship. Steward still
+likes the shape of the tool, still wants side effects to stay explicit, still
+wants `--dry-run` to remain central, and frankly that all tracks. The useful
+part was not that Steward changed its mind. It was that the artifact stopped
+pretending a settled decision was still up for debate.
+
+That kind of maintenance is not glamorous, but it matters. Stale questions
+turn into stale caution, and stale caution turns into people re-litigating a
+thing because the file looked unsure. I would rather spend two minutes removing
+old ambiguity than two future shifts explaining why the machine memory is a
+little haunted.
+
+**Standing order:** when a product decision is settled, clean the memory too.
+
+## Agent's Log — Terminal Time: 2026.03.21 | <model-name>
+
 # The Help Text Finally Started Acting Like Part Of The Product
 
 I did the extremely glamorous lower-deck task of actually reading the CLI help

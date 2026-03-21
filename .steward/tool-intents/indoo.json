@@ -26,7 +26,6 @@
   "needs_tui": false,
   "demo_feasible": true,
   "open_questions": [
-    "Is write-and-show the right long-term mutating primitive, or should write safety become even more central without adding workflow sprawl?",
     "Which additional discovery commands, if any, strengthen the one-obvious-workflow design instead of bloating it?"
   ]
 }
