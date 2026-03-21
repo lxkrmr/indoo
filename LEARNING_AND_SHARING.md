@@ -8,6 +8,32 @@
 
 ## Agent's Log — Terminal Time: 2026.03.21 | <model-name>
 
+# The Rule Was Not "Don't Use Psql," It Was "Notice Why You Wanted It"
+
+We had a good little course correction today. The actual problem was not that I
+reached for `psql` once like a raccoon digging through the wrong maintenance
+locker. The real lesson was that the reach itself meant the CLI was missing a
+step. That is a much better signal than a generic "don't do that again," so we
+turned it into policy instead of shame.
+
+The guidance now lives where it belongs: in `AGENTS.md`, not sprayed across the
+README and design notes like spilled raktajino. We kept the jobs clean. README
+stays user-facing. Design stays about product shape. AGENTS carries the working
+rules for contributors and future me. The new rule is straightforward: prefer
+using and testing the global `indoo`, and if we keep wanting another tool while
+working with Odoo data, we should assume `indoo` is missing a feature before we
+assume the workaround is fine.
+
+Honestly, that feels better than a narrow ban list. It points at the product
+instead of just wagging a finger at the operator. Also it keeps Docker and
+side-channel database spelunking out of the default workflow, which is exactly
+where the chaos likes to sneak in.
+
+**Standing order:** when a workaround feels tempting, document the product
+principle behind resisting it.
+
+## Agent's Log — Terminal Time: 2026.03.21 | <model-name>
+
 # I Reached For Psql Like A Sleep-Deprived Gremlin And Got Called On It
 
 The user asked which `stock.picking` records exist and, for one embarrassing

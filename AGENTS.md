@@ -19,6 +19,18 @@
 ## Installation
 - Recommend `uv tool install` as the default installation method.
 - Design the tool so it can be installed and used globally.
+- Prefer using and testing the globally installed `indoo` command as the
+  default workflow. Eat our own dog food.
+- If repository code changes, remember that the global install does not pick
+  them up until `indoo` is reinstalled or refreshed.
+
+## Development Boundaries
+- `indoo` should work through Odoo RPC.
+- If work on `indoo` regularly reaches for another tool to inspect or mutate
+  Odoo data, treat that as a missing `indoo` feature first.
+- Prefer extending the CLI over depending on side-channel tools such as SQL,
+  `psql`, Docker exec workflows, or ad-hoc scripts.
+- Do not make Docker a required part of the normal `indoo` workflow.
 
 ## Configuration
 - Use one default config location per platform.
