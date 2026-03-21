@@ -57,6 +57,15 @@ def default_text(payload: dict[str, Any]) -> str:
         subject = payload.get("subject", "command")
         summary = payload.get("summary", "")
         return f"{subject}: {summary}".strip(": ")
+    if action == "list":
+        model = payload.get("model")
+        records = payload.get("records", [])
+        fields = payload.get("fields", [])
+        lines = [str(model)]
+        for record in records:
+            values = [str(record.get(field)) for field in fields]
+            lines.append(" ".join(values))
+        return "\n".join(lines)
     if action == "show":
         model = payload.get("model")
         record_id = payload.get("id")

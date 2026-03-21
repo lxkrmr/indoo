@@ -22,8 +22,8 @@ app = typer.Typer(
     help=(
         "Indoo is a small CLI for inspecting and updating Odoo records. "
         "Start with 'indoo doctor'. Then add a profile, inspect fields with "
-        "'indoo fields', read records with 'indoo show', and mutate data "
-        "with 'indoo write' or 'indoo create'."
+        "'indoo fields', list records with 'indoo list', read records with "
+        "'indoo show', and mutate data with 'indoo write' or 'indoo create'."
     ),
     no_args_is_help=True,
 )
@@ -188,6 +188,24 @@ ProfileOption = Annotated[
     ),
 ]
 
+LimitOption = Annotated[
+    int,
+    typer.Option(
+        "--limit",
+        min=1,
+        help="Maximum number of records to return. Defaults to 10.",
+    ),
+]
+
+OffsetOption = Annotated[
+    int,
+    typer.Option(
+        "--offset",
+        min=0,
+        help="Number of records to skip before listing results.",
+    ),
+]
+
 
 @app.callback()
 def main_options(
@@ -225,6 +243,46 @@ def schema_command(
 ) -> None:
     """Alias for describe."""
     describe_command(ctx, subject)
+
+
+@app.command("list")
+def list_records(
+    ctx: typer.Context,
+    model: Annotated[str, typer.Argument(help="Technical model name, for example res.partner.")],
+    fields: Annotated[list[str], typer.Argument(help="Optional fields to read for each record.")] = [],
+    limit: LimitOption = 10,
+    offset: OffsetOption = 0,
+    profile: ProfileOption = None,
+    context_items: ContextOption = [],
+    context_json: ContextJsonOption = None,
+) -> None:
+    """List records for one model with a safe default limit."""
+    try:
+        validate_model_name(model)
+        validated_fields = validate_field_names(fields) if fields else []
+        validated_profile = validate_profile_name(profile) if profile else None
+        read_fields = ["id", *validated_fields] if validated_fields else ["id"]
+
+        connection = connect(validated_profile, context_items, context_json)
+        records = connection.model(model).list(read_fields, limit=limit, offset=offset)
+        emit(
+            ctx,
+            {
+                "ok": True,
+                "action": "list",
+                "model": model,
+                "profile": connection.profile_name,
+                "context": connection.context,
+                "fields": read_fields,
+                "limit": limit,
+                "offset": offset,
+                "count": len(records),
+                "records": records,
+                "items": records,
+            },
+        )
+    except Exception as exc:
+        fail(ctx, error_message(exc), details={"action": "list", "model": model})
 
 
 @app.command("show")

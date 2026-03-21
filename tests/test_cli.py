@@ -153,6 +153,54 @@ password = "admin"
             self.assertEqual(result.exit_code, 0, result.stdout)
             self.assertIn("ready to use", result.stdout)
 
+    def test_list_defaults_to_id_only_with_safe_limit(self) -> None:
+        connection = Mock()
+        connection.profile_name = "local"
+        connection.context = {}
+        connection.model.return_value.list.return_value = [{"id": 7}, {"id": 9}]
+
+        with patch("indoo.cli.connect", return_value=connection):
+            result = self.runner.invoke(app, ["list", "res.partner"])
+
+        self.assertEqual(result.exit_code, 0, result.stdout)
+        payload = json.loads(result.stdout)
+        self.assertEqual(payload["action"], "list")
+        self.assertEqual(payload["fields"], ["id"])
+        self.assertEqual(payload["limit"], 10)
+        self.assertEqual(payload["offset"], 0)
+        self.assertEqual(payload["records"], [{"id": 7}, {"id": 9}])
+        connection.model.return_value.list.assert_called_once_with(["id"], limit=10, offset=0)
+
+    def test_list_accepts_requested_fields_limit_and_offset(self) -> None:
+        connection = Mock()
+        connection.profile_name = "local"
+        connection.context = {"lang": "de_DE"}
+        connection.model.return_value.list.return_value = [{"id": 49, "name": "Alexander Kramer"}]
+
+        with patch("indoo.cli.connect", return_value=connection):
+            result = self.runner.invoke(
+                app,
+                [
+                    "list",
+                    "res.partner",
+                    "name",
+                    "--limit",
+                    "20",
+                    "--offset",
+                    "20",
+                    "--context-json",
+                    '{"lang":"de_DE"}',
+                ],
+            )
+
+        self.assertEqual(result.exit_code, 0, result.stdout)
+        payload = json.loads(result.stdout)
+        self.assertEqual(payload["fields"], ["id", "name"])
+        self.assertEqual(payload["limit"], 20)
+        self.assertEqual(payload["offset"], 20)
+        self.assertEqual(payload["context"], {"lang": "de_DE"})
+        connection.model.return_value.list.assert_called_once_with(["id", "name"], limit=20, offset=20)
+
     def test_write_accepts_json_payload_and_context_json(self) -> None:
         record = Mock()
         record.read.side_effect = [

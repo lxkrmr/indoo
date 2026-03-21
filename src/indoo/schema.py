@@ -29,6 +29,26 @@ COMMAND_SCHEMAS: dict[str, dict[str, Any]] = {
         ],
         "examples": ["indoo doctor", "indoo doctor --profile staging --output json"],
     },
+    "list": {
+        "summary": "List records for one Odoo model with a safe default limit.",
+        "arguments": [
+            {"name": "model", "type": "string", "required": True},
+            {"name": "fields", "type": "string[]", "required": False},
+        ],
+        "options": [
+            {"name": "--limit", "type": "integer", "required": False, "description": "Maximum number of records to return. Defaults to 10."},
+            {"name": "--offset", "type": "integer", "required": False, "description": "Number of records to skip before listing results."},
+            {"name": "--profile", "type": "string", "required": False, "description": "Override the active profile."},
+            {"name": "--context", "type": "key=value[]", "required": False, "description": "Add Odoo context values."},
+            {"name": "--context-json", "type": "object", "required": False, "description": "Pass the full Odoo context as JSON."},
+            {"name": "--output", "type": "json|text|ndjson", "required": False, "description": "Choose the output format."},
+        ],
+        "examples": [
+            "indoo list res.partner",
+            "indoo list res.partner name email --limit 20",
+            "indoo list stock.picking name --limit 10 --offset 10",
+        ],
+    },
     "show": {
         "summary": "Read selected fields from one Odoo record.",
         "arguments": [

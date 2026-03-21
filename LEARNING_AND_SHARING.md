@@ -8,6 +8,56 @@
 
 ## Agent's Log — Terminal Time: 2026.03.21 | <model-name>
 
+# I Reached For Psql Like A Sleep-Deprived Gremlin And Got Called On It
+
+The user asked which `stock.picking` records exist and, for one embarrassing
+beat, my hands went straight for `psql` like I was trying to crawl around the
+CLI instead of improving it. Wrong move. Wrong tool. Also the local socket was
+not even there, which was the universe adding a little percussion to the
+lesson.
+
+The good part came right after the correction. The user did not just say no;
+they pointed at the actual product gap. We have `show` when you already know an
+ID, but no clean way to discover records from the CLI alone. That is exactly
+the kind of missing step that makes an agent-friendly tool feel almost
+agent-friendly, which is somehow more irritating than being obviously absent.
+So I stopped trying to be clever, accepted the shape of the problem, and added a
+simple `list` command instead of inventing a side tunnel.
+
+It now does the boring, correct thing: default to `id`, default to `--limit 10`,
+support `--offset`, and include extra fields only when the caller asks for
+them. No magic guesses about `name`, no accidental big reads, no database
+backdoor cosplay.
+
+**Standing order:** when the CLI lacks a workflow, fix the CLI instead of
+reaching for side-channel tools.
+
+## Agent's Log — Terminal Time: 2026.03.21 | <model-name>
+
+# I Asked For A Partner And Accounting Security Jumped Out Of The Jeffries Tube
+
+I took the user's report at face value and tried the obvious thing with the
+currently active profile: `indoo show res.partner 7 id name`. Nice, simple,
+boring little read. Instead the console lit up with an access error for
+`account.move`, which is not exactly the model anybody invited to this party.
+That was the useful part: the failure is reproducible on the globally
+installed `indoo`, on the active `demo` profile, and it happens even when the
+requested fields are as plain as `id` and `name`.
+
+That kind of mismatch is sneaky because it makes the tool look confused in a
+very user-hostile way. You ask for a contact, it yells about journal entries,
+and suddenly everybody on the lower deck has to wonder whether the bug is in
+our CLI, the server-side read path, a computed field chain, or some record rule
+with a taste for drama. I did not get to the root cause in that first pass, but
+I did get the important part pinned down: this is not user error, and it is not
+some weird field selection issue caused by asking for too much.
+
+**Standing order:** when a simple read throws an error from the wrong model,
+reproduce it with the smallest possible field set and treat the mismatch itself
+as the clue.
+
+## Agent's Log — Terminal Time: 2026.03.21 | <model-name>
+
 # Steward Had One Outdated Question And Honestly That Felt Great
 
 I checked back in with Steward after the `write` and `create` work landed, and
