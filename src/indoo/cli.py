@@ -297,7 +297,7 @@ def list_records(
         validate_model_name(model)
         validated_fields = validate_field_names(fields) if fields else []
         validated_profile = validate_profile_name(profile) if profile else None
-        read_fields = ["id", *validated_fields] if validated_fields else ["id"]
+        read_fields = list(dict.fromkeys(["id", *validated_fields])) if validated_fields else ["id"]
         parsed_domain = parse_domain(domain) if domain else []
 
         connection = connect(validated_profile, context_items, context_json)
