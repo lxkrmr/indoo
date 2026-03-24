@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 import json
 from dataclasses import dataclass
 from typing import Annotated, Any
@@ -93,6 +94,21 @@ def parse_json_object(raw_json: str, *, label: str) -> dict[str, Any]:
     if not isinstance(value, dict):
         raise ValueError(f"{label} must be a JSON object.")
     return validate_json_value(value, label=label)
+
+
+def parse_domain(raw: str) -> list:
+    try:
+        value = ast.literal_eval(raw)
+    except (ValueError, SyntaxError) as exc:
+        raise ValueError(
+            f"Domain must be a Python list of triples, "
+            f"for example: [('name', 'ilike', 'Gold')]. Error: {exc}"
+        ) from exc
+    if not isinstance(value, list):
+        raise ValueError(
+            "Domain must be a list, for example: [('name', 'ilike', 'Gold')]."
+        )
+    return value
 
 
 def parse_mutation_payload(values: list[str], mutation_json: str | None, *, label: str) -> dict[str, Any]:
@@ -206,6 +222,17 @@ OffsetOption = Annotated[
     ),
 ]
 
+DomainOption = Annotated[
+    str | None,
+    typer.Option(
+        "--domain",
+        help=(
+            "Odoo domain filter as a Python list of triples. "
+            "Example: --domain \"[('bid_price', '>', 0), ('name', 'not ilike', 'Gold')]\""
+        ),
+    ),
+]
+
 
 @app.callback()
 def main_options(
@@ -252,19 +279,29 @@ def list_records(
     fields: Annotated[list[str], typer.Argument(help="Optional fields to read for each record.")] = [],
     limit: LimitOption = 10,
     offset: OffsetOption = 0,
+    domain: DomainOption = None,
     profile: ProfileOption = None,
     context_items: ContextOption = [],
     context_json: ContextJsonOption = None,
 ) -> None:
-    """List records for one model with a safe default limit."""
+    """List records for one model with a safe default limit.
+
+    Use --domain to filter by field values using Odoo domain syntax:
+
+      indoo list product.product id name --domain "[('bid_price', '>', 0)]"
+
+    The domain is a Python list of triples ('field', 'operator', value).
+    Prefix operators '|' and '&' are supported.
+    """
     try:
         validate_model_name(model)
         validated_fields = validate_field_names(fields) if fields else []
         validated_profile = validate_profile_name(profile) if profile else None
         read_fields = ["id", *validated_fields] if validated_fields else ["id"]
+        parsed_domain = parse_domain(domain) if domain else []
 
         connection = connect(validated_profile, context_items, context_json)
-        records = connection.model(model).list(read_fields, limit=limit, offset=offset)
+        records = connection.model(model).list(read_fields, limit=limit, offset=offset, domain=parsed_domain)
         emit(
             ctx,
             {
@@ -273,6 +310,7 @@ def list_records(
                 "model": model,
                 "profile": connection.profile_name,
                 "context": connection.context,
+                "domain": parsed_domain,
                 "fields": read_fields,
                 "limit": limit,
                 "offset": offset,

@@ -169,7 +169,7 @@ password = "admin"
         self.assertEqual(payload["limit"], 10)
         self.assertEqual(payload["offset"], 0)
         self.assertEqual(payload["records"], [{"id": 7}, {"id": 9}])
-        connection.model.return_value.list.assert_called_once_with(["id"], limit=10, offset=0)
+        connection.model.return_value.list.assert_called_once_with(["id"], limit=10, offset=0, domain=[])
 
     def test_list_accepts_requested_fields_limit_and_offset(self) -> None:
         connection = Mock()
@@ -199,7 +199,82 @@ password = "admin"
         self.assertEqual(payload["limit"], 20)
         self.assertEqual(payload["offset"], 20)
         self.assertEqual(payload["context"], {"lang": "de_DE"})
-        connection.model.return_value.list.assert_called_once_with(["id", "name"], limit=20, offset=20)
+        connection.model.return_value.list.assert_called_once_with(["id", "name"], limit=20, offset=20, domain=[])
+
+    def test_list_accepts_domain_filter(self) -> None:
+        connection = Mock()
+        connection.profile_name = "local"
+        connection.context = {}
+        connection.model.return_value.list.return_value = [{"id": 5, "bid_price": 10.0}]
+
+        with patch("indoo.cli.connect", return_value=connection):
+            result = self.runner.invoke(
+                app,
+                [
+                    "list",
+                    "product.product",
+                    "bid_price",
+                    "--domain",
+                    "[('bid_price', '>', 0)]",
+                ],
+            )
+
+        self.assertEqual(result.exit_code, 0, result.stdout)
+        payload = json.loads(result.stdout)
+        self.assertEqual(payload["domain"], [["bid_price", ">", 0]])
+        self.assertEqual(payload["records"], [{"id": 5, "bid_price": 10.0}])
+        connection.model.return_value.list.assert_called_once_with(
+            ["id", "bid_price"], limit=10, offset=0, domain=[("bid_price", ">", 0)]
+        )
+
+    def test_list_domain_with_prefix_operator(self) -> None:
+        connection = Mock()
+        connection.profile_name = "local"
+        connection.context = {}
+        connection.model.return_value.list.return_value = []
+
+        with patch("indoo.cli.connect", return_value=connection):
+            result = self.runner.invoke(
+                app,
+                [
+                    "list",
+                    "product.product",
+                    "--domain",
+                    "['|', ('name', 'ilike', 'Gold'), ('name', 'ilike', 'Silver')]",
+                ],
+            )
+
+        self.assertEqual(result.exit_code, 0, result.stdout)
+        connection.model.return_value.list.assert_called_once_with(
+            ["id"],
+            limit=10,
+            offset=0,
+            domain=["|", ("name", "ilike", "Gold"), ("name", "ilike", "Silver")],
+        )
+
+    def test_list_rejects_invalid_domain(self) -> None:
+        with patch("indoo.cli.connect"):
+            result = self.runner.invoke(
+                app,
+                ["list", "product.product", "--domain", "not a domain"],
+            )
+
+        self.assertNotEqual(result.exit_code, 0)
+        payload = json.loads(result.stdout)
+        self.assertFalse(payload["ok"])
+        self.assertIn("Domain must be", payload["message"])
+
+    def test_list_rejects_domain_that_is_not_a_list(self) -> None:
+        with patch("indoo.cli.connect"):
+            result = self.runner.invoke(
+                app,
+                ["list", "product.product", "--domain", "('name', 'ilike', 'Gold')"],
+            )
+
+        self.assertNotEqual(result.exit_code, 0)
+        payload = json.loads(result.stdout)
+        self.assertFalse(payload["ok"])
+        self.assertIn("Domain must be a list", payload["message"])
 
     def test_write_accepts_json_payload_and_context_json(self) -> None:
         record = Mock()
