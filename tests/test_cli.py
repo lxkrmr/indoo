@@ -485,6 +485,13 @@ password = "admin"
         payload = json.loads(result.stdout)
         self.assertEqual(payload["subject"], "doctor")
 
+    def test_show_rejects_invalid_model_name_with_example(self) -> None:
+        result = self.runner.invoke(app, ["show", "res partner", "1", "name"])
+        self.assertNotEqual(result.exit_code, 0)
+        payload = json.loads(result.stdout)
+        self.assertFalse(payload["ok"])
+        self.assertIn("indoo list res.partner id name", payload["message"])
+
     def test_show_rejects_invalid_model_name(self) -> None:
         result = self.runner.invoke(app, ["show", "sale.order?bad=1", "42", "name"])
 

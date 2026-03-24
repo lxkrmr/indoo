@@ -13,7 +13,11 @@ def validate_profile_name(name: str) -> str:
     reject_control_chars(name, label="Profile name")
     allowed = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.")
     if not name or any(char not in allowed for char in name):
-        raise ValueError("Profile name may only contain letters, numbers, '.', '-' and '_'.")
+        raise ValueError(
+            "Profile name may only contain letters, numbers, '.', '-' and '_', "
+            "for example: indoo profile add my-odoo --url http://localhost:8069 "
+            "--db odoo --user admin --password admin"
+        )
     return name
 
 
@@ -21,9 +25,15 @@ def validate_model_name(model: str) -> str:
     reject_control_chars(model, label="Model name")
     allowed = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._")
     if not model or any(char not in allowed for char in model):
-        raise ValueError("Model name may only contain letters, numbers, '.' and '_'.")
+        raise ValueError(
+            "Model name may only contain letters, numbers, '.' and '_', "
+            "for example: indoo list res.partner id name"
+        )
     if "?" in model or "#" in model or "%" in model:
-        raise ValueError("Model name must not contain query, fragment, or encoded characters.")
+        raise ValueError(
+            "Model name must not contain query, fragment, or encoded characters, "
+            "for example: indoo list res.partner id name"
+        )
     return model
 
 
