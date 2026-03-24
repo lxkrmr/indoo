@@ -252,6 +252,19 @@ password = "admin"
             domain=["|", ("name", "ilike", "Gold"), ("name", "ilike", "Silver")],
         )
 
+    def test_list_rejects_invalid_field_name_with_example(self) -> None:
+        with patch("indoo.cli.connect"):
+            result = self.runner.invoke(
+                app,
+                ["list", "res.partner", "id,name"],
+            )
+
+        self.assertNotEqual(result.exit_code, 0)
+        payload = json.loads(result.stdout)
+        self.assertFalse(payload["ok"])
+        self.assertIn("Invalid field name", payload["message"])
+        self.assertIn("indoo list res.partner id name email", payload["message"])
+
     def test_list_rejects_invalid_domain(self) -> None:
         with patch("indoo.cli.connect"):
             result = self.runner.invoke(

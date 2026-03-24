@@ -33,7 +33,11 @@ def validate_field_names(fields: list[str]) -> list[str]:
     for field in fields:
         reject_control_chars(field, label="Field name")
         if not field or any(char not in allowed for char in field):
-            raise ValueError(f"Invalid field name: {field!r}")
+            raise ValueError(
+                f"Invalid field name: {field!r}. "
+                "Use space-separated field names, "
+                "for example: indoo list res.partner id name email"
+            )
         validated.append(field)
     return validated
 
