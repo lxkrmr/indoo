@@ -279,38 +279,6 @@ password = "admin"
         payload = json.loads(result.stdout)
         self.assertEqual(payload["message"], "Unknown fields: nope")
 
-    def test_describe_returns_command_schema(self) -> None:
-        result = self.runner.invoke(app, ["describe", "fields"])
-
-        self.assertEqual(result.exit_code, 0, result.stdout)
-        payload = json.loads(result.stdout)
-        self.assertEqual(payload["action"], "describe")
-        self.assertEqual(payload["subject"], "fields")
-        self.assertTrue(any(option["name"] == "--profile" for option in payload["options"]))
-
-    def test_describe_list_includes_domain_option(self) -> None:
-        result = self.runner.invoke(app, ["describe", "list"])
-
-        self.assertEqual(result.exit_code, 0, result.stdout)
-        payload = json.loads(result.stdout)
-        option_names = [o["name"] for o in payload["options"]]
-        self.assertIn("--domain", option_names)
-
-    def test_describe_list_does_not_include_output_option(self) -> None:
-        result = self.runner.invoke(app, ["describe", "list"])
-
-        self.assertEqual(result.exit_code, 0, result.stdout)
-        payload = json.loads(result.stdout)
-        option_names = [o["name"] for o in payload["options"]]
-        self.assertNotIn("--output", option_names)
-
-    def test_schema_is_alias_for_describe(self) -> None:
-        result = self.runner.invoke(app, ["schema", "doctor"])
-
-        self.assertEqual(result.exit_code, 0, result.stdout)
-        payload = json.loads(result.stdout)
-        self.assertEqual(payload["subject"], "doctor")
-
     def test_show_rejects_invalid_model_name_with_example(self) -> None:
         result = self.runner.invoke(app, ["show", "res partner", "1", "name"])
         self.assertNotEqual(result.exit_code, 0)

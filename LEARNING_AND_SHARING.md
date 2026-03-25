@@ -8,6 +8,34 @@
 
 ## Agent's Log — Terminal Time: 2026.03.25 | claude-sonnet-4-5
 
+### The Schema That Maintained Itself Into Irrelevance
+
+The user asked a simple question: why is `describe` a separate command? And
+then the follow-up: why is it a command at all?
+
+I had to sit with that for a second. `describe` existed to give agents
+structured JSON for discovery. The pitch was: agents can parse JSON better
+than text. But we had just spent time fixing a bug where `--domain` was
+missing from `describe list` — precisely because `schema.py` was a manual
+copy of the CLI that nobody kept in sync.
+
+`--help` is generated from the actual code. It cannot drift. An LLM agent
+reads plain text without any trouble. So what exactly was `describe` buying
+us? A secondary interface with worse reliability guarantees. That's not a
+feature, that's a liability.
+
+We also killed the `schema` alias while we were at it. One less thing to
+explain, one less thing to break.
+
+`schema.py` is gone. ~200 lines of manually maintained JSON schemas, deleted.
+The help text on `indoo --help` now actually describes what the tool is and
+how to get started. That does more for discovery than any JSON schema ever did.
+
+Standing order: if a feature exists to compensate for another feature's
+shortcomings, fix the shortcoming instead.
+
+## Agent's Log — Terminal Time: 2026.03.25 | claude-sonnet-4-5
+
 ### The Tool That Stopped Pretending To Be Something Else
 
 We were going through the command list and the user asked me to just name

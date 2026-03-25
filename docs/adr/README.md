@@ -14,3 +14,4 @@ This directory stores long-lived product and architecture decisions for
 - [0007: Error messages must include a correct usage example](0007-error-messages-include-example.md)
 - [0008: JSON-only output](0008-json-only-output.md)
 - [0009: indoo is an inspection tool](0009-inspect-only.md)
+- [0010: Use --help for discovery, remove describe command](0010-help-over-describe.md)

@@ -10,7 +10,6 @@ import typer
 from .client import OdooConnection, parse_context
 from .config import ConnectionProfile, IndoConfig, default_config_path
 from .output import OutputManager
-from .schema import describe_subject
 from .validation import (
     validate_field_names,
     validate_json_value,
@@ -21,10 +20,12 @@ from .validation import (
 
 app = typer.Typer(
     help=(
-        "Indoo is a small CLI for inspecting Odoo records. "
-        "Start with 'indoo doctor'. Then add a profile, inspect fields with "
-        "'indoo fields', list records with 'indoo list', and read records with "
-        "'indoo show'."
+        "indoo is a read-only CLI for inspecting Odoo data. "
+        "It helps developers understand what is in Odoo without mutating it. "
+        "Start with 'indoo doctor' to verify your setup. "
+        "Then use 'indoo fields MODEL' to explore a model, "
+        "'indoo list MODEL' to find records, "
+        "and 'indoo show MODEL ID FIELDS' to read a specific record."
     ),
     no_args_is_help=True,
 )
@@ -188,36 +189,6 @@ DomainOption = Annotated[
 @app.callback()
 def main_options(ctx: typer.Context) -> None:
     ctx.obj = AppState(output=OutputManager())
-
-
-@app.command("describe")
-def describe_command(
-    ctx: typer.Context,
-    subject: Annotated[str | None, typer.Argument(help="Command or topic to describe.")] = None,
-) -> None:
-    """Describe commands and their machine-friendly input shape for CLI-only discovery."""
-    try:
-        description = describe_subject(subject)
-    except KeyError as exc:
-        fail(ctx, error_message(exc), details={"action": "describe"})
-
-    emit(
-        ctx,
-        {
-            "ok": True,
-            "action": "describe",
-            **description,
-        },
-    )
-
-
-@app.command("schema")
-def schema_command(
-    ctx: typer.Context,
-    subject: Annotated[str | None, typer.Argument(help="Command or topic to describe.")] = None,
-) -> None:
-    """Alias for describe."""
-    describe_command(ctx, subject)
 
 
 @app.command("list")
