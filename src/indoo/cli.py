@@ -7,7 +7,7 @@ from typing import Annotated, Any
 
 import typer
 
-from .client import OdooConnection, parse_assignments, parse_context
+from .client import OdooConnection, parse_context
 from .config import ConnectionProfile, IndoConfig, default_config_path
 from .output import OutputManager
 from .schema import describe_subject
@@ -21,10 +21,10 @@ from .validation import (
 
 app = typer.Typer(
     help=(
-        "Indoo is a small CLI for inspecting and updating Odoo records. "
+        "Indoo is a small CLI for inspecting Odoo records. "
         "Start with 'indoo doctor'. Then add a profile, inspect fields with "
-        "'indoo fields', list records with 'indoo list', read records with "
-        "'indoo show', and mutate data with 'indoo write' or 'indoo create'."
+        "'indoo fields', list records with 'indoo list', and read records with "
+        "'indoo show'."
     ),
     no_args_is_help=True,
 )
@@ -111,21 +111,6 @@ def parse_domain(raw: str) -> list:
     return value
 
 
-def parse_mutation_payload(values: list[str], mutation_json: str | None, *, label: str) -> dict[str, Any]:
-    if bool(values) == bool(mutation_json):
-        raise ValueError("Provide either --value or --json.")
-    return parse_json_object(mutation_json, label=label) if mutation_json else parse_assignments(values)
-
-
-def resolve_read_fields(fields: list[str], payload: dict[str, Any]) -> list[str]:
-    if fields:
-        return validate_field_names(fields)
-    payload_fields = [key for key in payload if "." not in key]
-    if not payload_fields:
-        raise ValueError("Provide at least one field to inspect.")
-    return validate_field_names(payload_fields)
-
-
 def build_profile_items(config: IndoConfig) -> list[dict[str, Any]]:
     return [
         {
@@ -159,31 +144,6 @@ ContextJsonOption = Annotated[
 FieldArgument = Annotated[
     list[str],
     typer.Argument(help="Fields to read from the record."),
-]
-
-ValueOption = Annotated[
-    list[str],
-    typer.Option(
-        "--value",
-        "-v",
-        help="Value assignment in KEY=VALUE form for simple fields. VALUE can be JSON.",
-    ),
-]
-
-WriteJsonOption = Annotated[
-    str | None,
-    typer.Option(
-        "--json",
-        help="Full mutation payload as a JSON object. Use this for nested or relational values.",
-    ),
-]
-
-DryRunOption = Annotated[
-    bool,
-    typer.Option(
-        "--dry-run",
-        help="Validate and preview the mutation without applying it. Recommended first for writes and creates.",
-    ),
 ]
 
 ProfileOption = Annotated[
@@ -377,145 +337,6 @@ def fields_command(
         )
     except Exception as exc:
         fail(ctx, error_message(exc), details={"action": "fields", "model": model})
-
-
-@app.command("write")
-def write_record(
-    ctx: typer.Context,
-    model: Annotated[str, typer.Argument(help="Technical model name, for example sale.order.")],
-    record_id: Annotated[int, typer.Argument(help="Record ID to update.")],
-    fields: Annotated[
-        list[str],
-        typer.Argument(help="Fields to read back after the write. Defaults to the payload's top-level field names."),
-    ] = [],
-    values: ValueOption = [],
-    write_json: WriteJsonOption = None,
-    dry_run: DryRunOption = False,
-    profile: ProfileOption = None,
-    context_items: ContextOption = [],
-    context_json: ContextJsonOption = None,
-) -> None:
-    """Write values to one record and confirm the result. Use --dry-run first for risky changes."""
-    try:
-        validate_model_name(model)
-        validated_profile = validate_profile_name(profile) if profile else None
-        parsed_values = parse_mutation_payload(values, write_json, label="Write JSON")
-        validated_fields = resolve_read_fields(fields, parsed_values)
-
-        connection = connect(validated_profile, context_items, context_json)
-        record = connection.record(model, record_id)
-        before = record.read(validated_fields)
-        if dry_run:
-            emit(
-                ctx,
-                {
-                    "ok": True,
-                    "action": "write",
-                    "dry_run": True,
-                    "model": model,
-                    "id": record_id,
-                    "profile": connection.profile_name,
-                    "context": connection.context,
-                    "write": parsed_values,
-                    "fields": validated_fields,
-                    "before": before,
-                    "message": "Write validated. No changes were applied.",
-                },
-            )
-            return
-
-        record.write(parsed_values)
-        after = record.read(validated_fields)
-
-        changed = {
-            field: {"before": before.get(field), "after": after.get(field)}
-            for field in validated_fields
-            if before.get(field) != after.get(field)
-        }
-
-        emit(
-            ctx,
-            {
-                "ok": True,
-                "action": "write",
-                "dry_run": False,
-                "model": model,
-                "id": record_id,
-                "profile": connection.profile_name,
-                "context": connection.context,
-                "write": parsed_values,
-                "fields": validated_fields,
-                "before": before,
-                "after": after,
-                "changed": changed,
-            },
-        )
-    except Exception as exc:
-        fail(ctx, error_message(exc), details={"action": "write", "model": model, "id": record_id})
-
-
-@app.command("create")
-def create_record(
-    ctx: typer.Context,
-    model: Annotated[str, typer.Argument(help="Technical model name, for example sale.order.")],
-    fields: Annotated[
-        list[str],
-        typer.Argument(help="Fields to read back after create. Defaults to the payload's top-level field names."),
-    ] = [],
-    values: ValueOption = [],
-    create_json: WriteJsonOption = None,
-    dry_run: DryRunOption = False,
-    profile: ProfileOption = None,
-    context_items: ContextOption = [],
-    context_json: ContextJsonOption = None,
-) -> None:
-    """Create one record and confirm the result. Use --json for nested or relational payloads."""
-    try:
-        validate_model_name(model)
-        validated_profile = validate_profile_name(profile) if profile else None
-        parsed_values = parse_mutation_payload(values, create_json, label="Create JSON")
-        validated_fields = resolve_read_fields(fields, parsed_values)
-
-        connection = connect(validated_profile, context_items, context_json)
-        if dry_run:
-            emit(
-                ctx,
-                {
-                    "ok": True,
-                    "action": "create",
-                    "dry_run": True,
-                    "model": model,
-                    "profile": connection.profile_name,
-                    "context": connection.context,
-                    "create": parsed_values,
-                    "fields": validated_fields,
-                    "message": "Create validated. No changes were applied.",
-                },
-            )
-            return
-
-        model_handle = connection.model(model)
-        record_id = model_handle.create(parsed_values)
-        record = connection.record(model, record_id)
-        after = record.read(validated_fields)
-
-        emit(
-            ctx,
-            {
-                "ok": True,
-                "action": "create",
-                "dry_run": False,
-                "model": model,
-                "id": record_id,
-                "profile": connection.profile_name,
-                "context": connection.context,
-                "create": parsed_values,
-                "fields": validated_fields,
-                "record": after,
-            },
-        )
-    except Exception as exc:
-        fail(ctx, error_message(exc), details={"action": "create", "model": model})
 
 
 @app.command("doctor")

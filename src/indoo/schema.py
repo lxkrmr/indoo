@@ -3,22 +3,6 @@ from __future__ import annotations
 from typing import Any
 
 
-RELATIONAL_COMMAND_SCHEMA = {
-    "type": "object[]",
-    "description": "Relational operations for one2many and many2many fields.",
-    "items": {
-        "op": "create|update|delete|unlink|link|clear|set",
-        "create": {"values": "object"},
-        "update": {"id": "integer", "values": "object"},
-        "delete": {"id": "integer"},
-        "unlink": {"id": "integer"},
-        "link": {"id": "integer"},
-        "clear": {},
-        "set": {"ids": "integer[]"},
-    },
-}
-
-
 COMMAND_SCHEMAS: dict[str, dict[str, Any]] = {
     "doctor": {
         "summary": "Check config, resolve the active profile, and test Odoo connectivity.",
@@ -78,55 +62,6 @@ COMMAND_SCHEMAS: dict[str, dict[str, Any]] = {
         "examples": [
             "indoo fields purchase.order",
             "indoo fields purchase.order name notes state",
-        ],
-    },
-    "write": {
-        "summary": "Write values to one record and confirm the resulting field values.",
-        "arguments": [
-            {"name": "model", "type": "string", "required": True},
-            {"name": "record_id", "type": "integer", "required": True},
-            {"name": "fields", "type": "string[]", "required": False, "description": "Fields to read back after the write. Defaults to top-level payload keys."},
-        ],
-        "options": [
-            {"name": "--value", "type": "key=value[]", "required": False, "description": "Write one or more flat assignments."},
-            {"name": "--json", "type": "object", "required": False, "description": "Pass the full write payload as JSON. Use this for relational operations too."},
-            {"name": "--dry-run", "type": "boolean", "required": False, "description": "Validate and preview the write without mutating data."},
-            {"name": "--context", "type": "key=value[]", "required": False, "description": "Add Odoo context values."},
-            {"name": "--context-json", "type": "object", "required": False, "description": "Pass the full Odoo context as JSON."},
-            {"name": "--profile", "type": "string", "required": False, "description": "Override the active profile."},
-        ],
-        "payload_notes": {
-            "simple_assignments": "Use --value for flat scalar or JSON values.",
-            "relational_json": RELATIONAL_COMMAND_SCHEMA,
-        },
-        "examples": [
-            "indoo write sale.order 42 state --value state='sale'",
-            "indoo write sale.order 42 amount_total state --json '{\"state\":\"draft\"}'",
-            "indoo write sale.order 42 --json '{\"tag_ids\":[{\"op\":\"set\",\"ids\":[1,2,3]}]}'",
-        ],
-    },
-    "create": {
-        "summary": "Create one record and confirm the resulting field values.",
-        "arguments": [
-            {"name": "model", "type": "string", "required": True},
-            {"name": "fields", "type": "string[]", "required": False, "description": "Fields to read back after create. Defaults to top-level payload keys."},
-        ],
-        "options": [
-            {"name": "--value", "type": "key=value[]", "required": False, "description": "Set one or more flat assignments."},
-            {"name": "--json", "type": "object", "required": False, "description": "Pass the full create payload as JSON. Use this for relational operations too."},
-            {"name": "--dry-run", "type": "boolean", "required": False, "description": "Validate and preview the create without mutating data."},
-            {"name": "--context", "type": "key=value[]", "required": False, "description": "Add Odoo context values."},
-            {"name": "--context-json", "type": "object", "required": False, "description": "Pass the full Odoo context as JSON."},
-            {"name": "--profile", "type": "string", "required": False, "description": "Override the active profile."},
-        ],
-        "payload_notes": {
-            "simple_assignments": "Use --value for flat scalar or JSON values.",
-            "relational_json": RELATIONAL_COMMAND_SCHEMA,
-        },
-        "examples": [
-            "indoo create res.partner name --value name='Acme'",
-            "indoo create sale.order --json '{\"partner_id\":7,\"order_line\":[{\"op\":\"create\",\"values\":{\"name\":\"Line A\"}}]}'",
-            "indoo create sale.order state --json '{\"partner_id\":7,\"state\":\"draft\"}' --dry-run",
         ],
     },
     "profile": {

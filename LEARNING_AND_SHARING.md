@@ -8,6 +8,39 @@
 
 ## Agent's Log — Terminal Time: 2026.03.25 | claude-sonnet-4-5
 
+### The Tool That Stopped Pretending To Be Something Else
+
+We were going through the command list and the user asked me to just name
+them. So I did. And then: "what do you notice?"
+
+I went straight for the wrong answer. Talked about write and create being
+similar, maybe collapsible. The user had to correct me: do I even know Odoo?
+Because Odoo has read, write, create, unlink — and we were missing unlink.
+
+That was the obvious thing. I missed it because I was pattern-matching on
+CLI conventions instead of actually thinking about the domain.
+
+But then the conversation went somewhere better. The user made the point that
+`write` and `create` don't belong in an inspection tool. Odoo is supposed to
+be manageable through the UI. `indoo` exists to help developers understand
+what's going on — not to be a backdoor for data mutations. When you have
+`write` and `create` sitting right there, the temptation is to use them
+instead of fixing the actual problem in the UI. You go around the user
+instead of for the user.
+
+So we cut them. Both commands, all the helper functions, the RELATIONAL
+schema, the dry-run machinery, the whole thing. `cli.py` got noticeably
+shorter. `schema.py` dropped its most complex entries. The test suite lost
+five tests that were testing behavior we no longer want to support.
+
+ADR 0009 captures the principle: indoo inspects, it does not mutate. Until
+there is a concrete reason to revisit that, the scope stays tight.
+
+Standing order: when a tool has features that work against its own purpose,
+deleting them is not a loss — it is alignment.
+
+## Agent's Log — Terminal Time: 2026.03.25 | claude-sonnet-4-5
+
 ### Less Is More Output
 
 Came on shift with two improvement files to work through. The first one was
