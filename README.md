@@ -1,19 +1,12 @@
 # indoo
 
-`indoo` is a small, agent-friendly CLI for working with Odoo over RPC.
+`indoo` is a small, read-only CLI for inspecting Odoo data over RPC.
 
+It helps developers understand what is in Odoo without mutating it.
 The CLI is the primary interface for both humans and agents.
-Point the agent to `indoo`, not to this README.
-
-If you are unsure where to start, run:
-
-```bash
-indoo doctor
-```
+Point the agent to `indoo --help`, not to this README.
 
 ## Install
-
-Use one installation path:
 
 ```bash
 uv tool install git+https://github.com/lxkrmr/indoo.git
@@ -45,58 +38,36 @@ indoo profile add local --url http://localhost:8069 --db odoo --user admin --pas
 indoo doctor
 ```
 
-4. List records with a safe default limit:
+4. Explore a model's fields:
 
 ```bash
-indoo list res.partner
-indoo list res.partner name email --limit 20
+indoo fields_get res.partner
+indoo fields_get res.partner name email
 ```
 
-5. Read one record:
+5. Search for records:
 
 ```bash
-indoo show res.partner 1 name email
+indoo search res.partner
+indoo search res.partner name email --limit 20
+indoo search res.partner name --domain "[('customer_rank', '>', 0)]"
 ```
 
-6. Inspect fields before writing:
+6. Read one record:
 
 ```bash
-indoo fields res.partner name email
+indoo read res.partner 1 name email
 ```
 
-7. Update one record:
-
-```bash
-indoo write res.partner 1 name --value name="New Name" --dry-run
-indoo write res.partner 1 name --value name="New Name"
-```
-
-8. Create one record:
-
-```bash
-indoo create res.partner name --value name="Acme"
-```
-
-9. Discover command shapes from the CLI itself:
-
-```bash
-indoo describe
-indoo describe write
-indoo describe list
-```
-
-## CLI-first usage
+## Discovery
 
 Use the CLI itself to learn the workflow:
 
 ```bash
 indoo --help
-indoo describe
-indoo describe list
-indoo describe write
+indoo search --help
+indoo read --help
+indoo fields_get --help
 ```
 
-For agents, the intended path is:
-- start with `indoo doctor`
-- use `indoo --help` and subcommand help
-- use `indoo describe` for machine-friendly command discovery
+All output is JSON.
