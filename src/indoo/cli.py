@@ -285,7 +285,7 @@ def fields_command(
     fields: Annotated[list[str], typer.Argument(help="Optional field names to inspect.")] = [],
     profile: ProfileOption = None,
 ) -> None:
-    """Describe fields for one Odoo model before writing or creating records."""
+    """Describe fields and their metadata for one Odoo model."""
     try:
         validate_model_name(model)
         validated_fields = validate_field_names(fields) if fields else []
