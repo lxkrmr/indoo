@@ -96,7 +96,7 @@ class ModelHandle:
                 raise KeyError(f"Unknown fields: {', '.join(missing)}")
         return [normalize_field_info(name, raw_fields[name]) for name in names]
 
-    def list(self, fields: list[str], *, limit: int, offset: int, domain: list | None = None) -> list[dict[str, Any]]:
+    def search(self, fields: list[str], *, limit: int, offset: int, domain: list | None = None) -> list[dict[str, Any]]:
         records = self._model.search_read(domain or [], fields=fields, offset=offset, limit=limit, order="id asc")
         return [serialize_mapping(record) for record in records]
 

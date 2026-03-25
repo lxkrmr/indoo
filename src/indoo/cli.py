@@ -220,7 +220,7 @@ def list_records(
         parsed_domain = parse_domain(domain) if domain else []
 
         connection = connect(validated_profile, context_items, context_json)
-        records = connection.model(model).list(read_fields, limit=limit, offset=offset, domain=parsed_domain)
+        records = connection.model(model).search(read_fields, limit=limit, offset=offset, domain=parsed_domain)
         emit(
             ctx,
             {

@@ -100,11 +100,11 @@ password = "admin"
             self.assertTrue(payload["ok"])
             self.assertEqual(payload["checked_profile"], "local")
 
-    def test_list_defaults_to_id_only_with_safe_limit(self) -> None:
+    def test_search_defaults_to_id_only_with_safe_limit(self) -> None:
         connection = Mock()
         connection.profile_name = "local"
         connection.context = {}
-        connection.model.return_value.list.return_value = [{"id": 7}, {"id": 9}]
+        connection.model.return_value.search.return_value = [{"id": 7}, {"id": 9}]
 
         with patch("indoo.cli.connect", return_value=connection):
             result = self.runner.invoke(app, ["search", "res.partner"])
@@ -116,13 +116,13 @@ password = "admin"
         self.assertEqual(payload["limit"], 10)
         self.assertEqual(payload["offset"], 0)
         self.assertEqual(payload["records"], [{"id": 7}, {"id": 9}])
-        connection.model.return_value.list.assert_called_once_with(["id"], limit=10, offset=0, domain=[])
+        connection.model.return_value.search.assert_called_once_with(["id"], limit=10, offset=0, domain=[])
 
-    def test_list_accepts_requested_fields_limit_and_offset(self) -> None:
+    def test_search_accepts_requested_fields_limit_and_offset(self) -> None:
         connection = Mock()
         connection.profile_name = "local"
         connection.context = {"lang": "de_DE"}
-        connection.model.return_value.list.return_value = [{"id": 49, "name": "Alexander Kramer"}]
+        connection.model.return_value.search.return_value = [{"id": 49, "name": "Alexander Kramer"}]
 
         with patch("indoo.cli.connect", return_value=connection):
             result = self.runner.invoke(
@@ -146,13 +146,13 @@ password = "admin"
         self.assertEqual(payload["limit"], 20)
         self.assertEqual(payload["offset"], 20)
         self.assertEqual(payload["context"], {"lang": "de_DE"})
-        connection.model.return_value.list.assert_called_once_with(["id", "name"], limit=20, offset=20, domain=[])
+        connection.model.return_value.search.assert_called_once_with(["id", "name"], limit=20, offset=20, domain=[])
 
-    def test_list_accepts_domain_filter(self) -> None:
+    def test_search_accepts_domain_filter(self) -> None:
         connection = Mock()
         connection.profile_name = "local"
         connection.context = {}
-        connection.model.return_value.list.return_value = [{"id": 5, "bid_price": 10.0}]
+        connection.model.return_value.search.return_value = [{"id": 5, "bid_price": 10.0}]
 
         with patch("indoo.cli.connect", return_value=connection):
             result = self.runner.invoke(
@@ -170,15 +170,15 @@ password = "admin"
         payload = json.loads(result.stdout)
         self.assertEqual(payload["domain"], [["bid_price", ">", 0]])
         self.assertEqual(payload["records"], [{"id": 5, "bid_price": 10.0}])
-        connection.model.return_value.list.assert_called_once_with(
+        connection.model.return_value.search.assert_called_once_with(
             ["id", "bid_price"], limit=10, offset=0, domain=[("bid_price", ">", 0)]
         )
 
-    def test_list_domain_with_prefix_operator(self) -> None:
+    def test_search_domain_with_prefix_operator(self) -> None:
         connection = Mock()
         connection.profile_name = "local"
         connection.context = {}
-        connection.model.return_value.list.return_value = []
+        connection.model.return_value.search.return_value = []
 
         with patch("indoo.cli.connect", return_value=connection):
             result = self.runner.invoke(
@@ -192,14 +192,14 @@ password = "admin"
             )
 
         self.assertEqual(result.exit_code, 0, result.stdout)
-        connection.model.return_value.list.assert_called_once_with(
+        connection.model.return_value.search.assert_called_once_with(
             ["id"],
             limit=10,
             offset=0,
             domain=["|", ("name", "ilike", "Gold"), ("name", "ilike", "Silver")],
         )
 
-    def test_list_rejects_invalid_field_name_with_example(self) -> None:
+    def test_search_rejects_invalid_field_name_with_example(self) -> None:
         with patch("indoo.cli.connect"):
             result = self.runner.invoke(
                 app,
@@ -212,7 +212,7 @@ password = "admin"
         self.assertIn("Invalid field name", payload["message"])
         self.assertIn("indoo search res.partner id name email", payload["message"])
 
-    def test_list_rejects_invalid_domain(self) -> None:
+    def test_search_rejects_invalid_domain(self) -> None:
         with patch("indoo.cli.connect"):
             result = self.runner.invoke(
                 app,
@@ -224,7 +224,7 @@ password = "admin"
         self.assertFalse(payload["ok"])
         self.assertIn("Domain must be", payload["message"])
 
-    def test_list_rejects_domain_that_is_not_a_list(self) -> None:
+    def test_search_rejects_domain_that_is_not_a_list(self) -> None:
         with patch("indoo.cli.connect"):
             result = self.runner.invoke(
                 app,
@@ -279,21 +279,21 @@ password = "admin"
         payload = json.loads(result.stdout)
         self.assertEqual(payload["message"], "Unknown fields: nope")
 
-    def test_show_rejects_invalid_model_name_with_example(self) -> None:
+    def test_read_rejects_invalid_model_name_with_example(self) -> None:
         result = self.runner.invoke(app, ["read", "res partner", "1", "name"])
         self.assertNotEqual(result.exit_code, 0)
         payload = json.loads(result.stdout)
         self.assertFalse(payload["ok"])
         self.assertIn("indoo search res.partner id name", payload["message"])
 
-    def test_show_rejects_invalid_model_name(self) -> None:
+    def test_read_rejects_invalid_model_name(self) -> None:
         result = self.runner.invoke(app, ["read", "sale.order?bad=1", "42", "name"])
 
         self.assertEqual(result.exit_code, 1, result.stdout)
         payload = json.loads(result.stdout)
         self.assertIn("Model name", payload["message"])
 
-    def test_show_rejects_invalid_context_json(self) -> None:
+    def test_read_rejects_invalid_context_json(self) -> None:
         result = self.runner.invoke(app, ["read", "sale.order", "42", "name", "--context-json", "[]"])
 
         self.assertEqual(result.exit_code, 1, result.stdout)
