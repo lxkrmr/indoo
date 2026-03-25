@@ -1,4 +1,4 @@
-# ADR 0006: Domain filter for `indoo list`
+# ADR 0006: Domain filter for `indoo search`
 
 ## Status
 
@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-`indoo list` fetches records without any filter. In practice, users and agents
+`indoo search` fetches records without any filter. In practice, users and agents
 need to narrow results by field values — for example to find products with a
 non-zero price or to exclude specific names. Without filtering, the only
 workaround is pagination plus external post-processing.
@@ -23,7 +23,7 @@ separate CLI concept.
 
 ## Decision
 
-Add `--domain` to `indoo list`. It accepts a domain in Python list-of-tuples
+Add `--domain` to `indoo search`. It accepts a domain in Python list-of-tuples
 syntax — exactly as it would be passed to `.search()`:
 
 ```

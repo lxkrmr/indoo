@@ -23,7 +23,7 @@ a description of the format.
 Example for an invalid field name:
 
 > Invalid field name: 'id,name'. Use space-separated field names,
-> for example: indoo list res.partner id name email
+> for example: indoo search res.partner id name email
 
 This applies to all validation errors across the CLI, not just field names.
 

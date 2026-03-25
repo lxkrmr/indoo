@@ -1,4 +1,4 @@
-# ADR 0005: Safe defaults for `indoo list`
+# ADR 0005: Safe defaults for `indoo search`
 
 ## Status
 
@@ -14,7 +14,7 @@ However, every real record can be relied on to have `id`.
 
 ## Decision
 
-Add `indoo list MODEL [FIELDS...]` with these defaults:
+Add `indoo search MODEL [FIELDS...]` with these defaults:
 - default fields: `id`
 - always include `id` in results
 - default `--limit 10`
