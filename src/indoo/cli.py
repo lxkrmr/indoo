@@ -203,7 +203,7 @@ def list_records(
     context_items: ContextOption = [],
     context_json: ContextJsonOption = None,
 ) -> None:
-    """Search and read records for one model. Wraps Odoo's search_read.
+    """Search and read records for one model.
 
     Use --domain to filter by field values using Odoo domain syntax:
 
@@ -245,13 +245,13 @@ def list_records(
 def show_record(
     ctx: typer.Context,
     model: Annotated[str, typer.Argument(help="Technical model name, for example sale.order.")],
-    record_id: Annotated[int, typer.Argument(help="Record ID to inspect.")],
+    record_id: Annotated[int, typer.Argument(help="Record ID to read.")],
     fields: FieldArgument,
     profile: ProfileOption = None,
     context_items: ContextOption = [],
     context_json: ContextJsonOption = None,
 ) -> None:
-    """Read fields from a single record. Wraps Odoo's read. Use 'indoo fields_get MODEL' first if needed."""
+    """Read fields from a single record. Use 'indoo fields_get MODEL' first if needed."""
     try:
         validate_model_name(model)
         validated_fields = validate_field_names(fields)
@@ -285,7 +285,7 @@ def fields_command(
     fields: Annotated[list[str], typer.Argument(help="Optional field names to inspect.")] = [],
     profile: ProfileOption = None,
 ) -> None:
-    """Describe fields and their metadata for one Odoo model. Wraps Odoo's fields_get."""
+    """Describe fields and their metadata for one Odoo model."""
     try:
         validate_model_name(model)
         validated_fields = validate_field_names(fields) if fields else []
