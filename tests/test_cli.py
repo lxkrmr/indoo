@@ -43,37 +43,6 @@ class CliTests(unittest.TestCase):
             self.assertEqual(payload["active_profile"], "local")
             self.assertTrue(config_path.exists())
 
-    def test_profile_list_outputs_ndjson_lines(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            config_path = Path(tmp) / "config.toml"
-            config_path.write_text(
-                """
-active_profile = "local"
-
-[profiles.local]
-url = "http://localhost:8069"
-db = "odoo"
-user = "admin"
-password = "admin"
-
-[profiles.staging]
-url = "https://example.com"
-db = "odoo"
-user = "deploy"
-password = "secret"
-""".strip()
-                + "\n"
-            )
-
-            with self._patched_config_path(config_path):
-                result = self.runner.invoke(app, ["--output", "ndjson", "profile", "list"])
-
-            self.assertEqual(result.exit_code, 0, result.stdout)
-            lines = [json.loads(line) for line in result.stdout.splitlines() if line.strip()]
-            self.assertEqual(len(lines), 2)
-            self.assertEqual(lines[0]["name"], "local")
-            self.assertTrue(lines[0]["is_active"])
-
     def test_doctor_suggests_switch_when_active_profile_fails(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             config_path = Path(tmp) / "config.toml"
@@ -130,28 +99,6 @@ password = "admin"
             payload = json.loads(result.stdout)
             self.assertTrue(payload["ok"])
             self.assertEqual(payload["checked_profile"], "local")
-
-    def test_doctor_supports_text_output(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            config_path = Path(tmp) / "config.toml"
-            config_path.write_text(
-                """
-active_profile = "local"
-
-[profiles.local]
-url = "http://localhost:8069"
-db = "odoo"
-user = "admin"
-password = "admin"
-""".strip()
-                + "\n"
-            )
-
-            with self._patched_config_path(config_path), patch("indoo.cli.OdooConnection.connect", return_value=object()):
-                result = self.runner.invoke(app, ["--output", "text", "doctor"])
-
-            self.assertEqual(result.exit_code, 0, result.stdout)
-            self.assertIn("ready to use", result.stdout)
 
     def test_list_defaults_to_id_only_with_safe_limit(self) -> None:
         connection = Mock()
@@ -477,6 +424,22 @@ password = "admin"
         self.assertEqual(payload["action"], "describe")
         self.assertEqual(payload["subject"], "write")
         self.assertTrue(any(option["name"] == "--json" for option in payload["options"]))
+
+    def test_describe_list_includes_domain_option(self) -> None:
+        result = self.runner.invoke(app, ["describe", "list"])
+
+        self.assertEqual(result.exit_code, 0, result.stdout)
+        payload = json.loads(result.stdout)
+        option_names = [o["name"] for o in payload["options"]]
+        self.assertIn("--domain", option_names)
+
+    def test_describe_list_does_not_include_output_option(self) -> None:
+        result = self.runner.invoke(app, ["describe", "list"])
+
+        self.assertEqual(result.exit_code, 0, result.stdout)
+        payload = json.loads(result.stdout)
+        option_names = [o["name"] for o in payload["options"]]
+        self.assertNotIn("--output", option_names)
 
     def test_schema_is_alias_for_describe(self) -> None:
         result = self.runner.invoke(app, ["schema", "doctor"])

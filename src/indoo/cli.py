@@ -9,7 +9,7 @@ import typer
 
 from .client import OdooConnection, parse_assignments, parse_context
 from .config import ConnectionProfile, IndoConfig, default_config_path
-from .output import OutputFormat, OutputManager
+from .output import OutputManager
 from .schema import describe_subject
 from .validation import (
     validate_field_names,
@@ -48,8 +48,8 @@ def get_state(ctx: typer.Context) -> AppState:
     return state
 
 
-def emit(ctx: typer.Context, payload: dict[str, Any], *, text: str | None = None) -> None:
-    get_state(ctx).output.emit(payload, text=text)
+def emit(ctx: typer.Context, payload: dict[str, Any]) -> None:
+    get_state(ctx).output.emit(payload)
 
 
 def fail(
@@ -139,15 +139,6 @@ def build_profile_items(config: IndoConfig) -> list[dict[str, Any]]:
     ]
 
 
-OutputOption = Annotated[
-    OutputFormat,
-    typer.Option(
-        "--output",
-        help="Output format.",
-        case_sensitive=False,
-    ),
-]
-
 ContextOption = Annotated[
     list[str],
     typer.Option(
@@ -235,11 +226,8 @@ DomainOption = Annotated[
 
 
 @app.callback()
-def main_options(
-    ctx: typer.Context,
-    output: OutputOption = "json",
-) -> None:
-    ctx.obj = AppState(output=OutputManager(format=output))
+def main_options(ctx: typer.Context) -> None:
+    ctx.obj = AppState(output=OutputManager())
 
 
 @app.command("describe")
@@ -316,7 +304,6 @@ def list_records(
                 "offset": offset,
                 "count": len(records),
                 "records": records,
-                "items": records,
             },
         )
     except Exception as exc:
@@ -386,7 +373,6 @@ def fields_command(
                 "model": model,
                 "profile": connection.profile_name,
                 "fields": field_items,
-                "items": field_items,
             },
         )
     except Exception as exc:
@@ -638,7 +624,6 @@ def profile_list(ctx: typer.Context) -> None:
             "config_path": str(config.path),
             "active_profile": config.active_profile,
             "profiles": profiles,
-            "items": profiles,
         },
     )
 

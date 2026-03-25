@@ -25,9 +25,8 @@ COMMAND_SCHEMAS: dict[str, dict[str, Any]] = {
         "arguments": [],
         "options": [
             {"name": "--profile", "type": "string", "required": False, "description": "Override the active profile."},
-            {"name": "--output", "type": "json|text|ndjson", "required": False, "description": "Choose the output format."},
         ],
-        "examples": ["indoo doctor", "indoo doctor --profile staging --output json"],
+        "examples": ["indoo doctor", "indoo doctor --profile staging"],
     },
     "list": {
         "summary": "List records for one Odoo model with a safe default limit.",
@@ -38,15 +37,16 @@ COMMAND_SCHEMAS: dict[str, dict[str, Any]] = {
         "options": [
             {"name": "--limit", "type": "integer", "required": False, "description": "Maximum number of records to return. Defaults to 10."},
             {"name": "--offset", "type": "integer", "required": False, "description": "Number of records to skip before listing results."},
+            {"name": "--domain", "type": "string", "required": False, "description": "Odoo domain filter as a Python list of triples. Example: \"[('purchase_method', '=', 'purchase')]\""},
             {"name": "--profile", "type": "string", "required": False, "description": "Override the active profile."},
             {"name": "--context", "type": "key=value[]", "required": False, "description": "Add Odoo context values."},
             {"name": "--context-json", "type": "object", "required": False, "description": "Pass the full Odoo context as JSON."},
-            {"name": "--output", "type": "json|text|ndjson", "required": False, "description": "Choose the output format."},
         ],
         "examples": [
             "indoo list res.partner",
             "indoo list res.partner name email --limit 20",
             "indoo list stock.picking name --limit 10 --offset 10",
+            "indoo list product.template name --domain \"[('purchase_method', '=', 'purchase')]\"",
         ],
     },
     "show": {
@@ -60,7 +60,6 @@ COMMAND_SCHEMAS: dict[str, dict[str, Any]] = {
             {"name": "--profile", "type": "string", "required": False, "description": "Override the active profile."},
             {"name": "--context", "type": "key=value[]", "required": False, "description": "Add Odoo context values."},
             {"name": "--context-json", "type": "object", "required": False, "description": "Pass the full Odoo context as JSON."},
-            {"name": "--output", "type": "json|text|ndjson", "required": False, "description": "Choose the output format."},
         ],
         "examples": [
             "indoo show sale.order 42 name amount_total",
@@ -75,7 +74,6 @@ COMMAND_SCHEMAS: dict[str, dict[str, Any]] = {
         ],
         "options": [
             {"name": "--profile", "type": "string", "required": False, "description": "Override the active profile."},
-            {"name": "--output", "type": "json|text|ndjson", "required": False, "description": "Choose the output format."},
         ],
         "examples": [
             "indoo fields purchase.order",
@@ -96,7 +94,6 @@ COMMAND_SCHEMAS: dict[str, dict[str, Any]] = {
             {"name": "--context", "type": "key=value[]", "required": False, "description": "Add Odoo context values."},
             {"name": "--context-json", "type": "object", "required": False, "description": "Pass the full Odoo context as JSON."},
             {"name": "--profile", "type": "string", "required": False, "description": "Override the active profile."},
-            {"name": "--output", "type": "json|text|ndjson", "required": False, "description": "Choose the output format."},
         ],
         "payload_notes": {
             "simple_assignments": "Use --value for flat scalar or JSON values.",
@@ -121,7 +118,6 @@ COMMAND_SCHEMAS: dict[str, dict[str, Any]] = {
             {"name": "--context", "type": "key=value[]", "required": False, "description": "Add Odoo context values."},
             {"name": "--context-json", "type": "object", "required": False, "description": "Pass the full Odoo context as JSON."},
             {"name": "--profile", "type": "string", "required": False, "description": "Override the active profile."},
-            {"name": "--output", "type": "json|text|ndjson", "required": False, "description": "Choose the output format."},
         ],
         "payload_notes": {
             "simple_assignments": "Use --value for flat scalar or JSON values.",
@@ -142,17 +138,14 @@ COMMAND_SCHEMAS: dict[str, dict[str, Any]] = {
     "profile list": {
         "summary": "List all saved profiles.",
         "arguments": [],
-        "options": [
-            {"name": "--output", "type": "json|text|ndjson", "required": False, "description": "Choose the output format."},
-        ],
-        "examples": ["indoo profile list", "indoo profile list --output ndjson"],
+        "options": [],
+        "examples": ["indoo profile list"],
     },
     "profile show": {
         "summary": "Show the active profile or a specific profile.",
         "arguments": [],
         "options": [
             {"name": "--profile", "type": "string", "required": False, "description": "Override the active profile."},
-            {"name": "--output", "type": "json|text|ndjson", "required": False, "description": "Choose the output format."},
         ],
         "examples": ["indoo profile show", "indoo profile show --profile staging"],
     },
@@ -164,16 +157,13 @@ COMMAND_SCHEMAS: dict[str, dict[str, Any]] = {
             {"name": "--db", "type": "string", "required": True},
             {"name": "--user", "type": "string", "required": True},
             {"name": "--password", "type": "string", "required": True},
-            {"name": "--output", "type": "json|text|ndjson", "required": False, "description": "Choose the output format."},
         ],
         "examples": ["indoo profile add local --url http://localhost:8069 --db odoo --user admin --password admin"],
     },
     "profile use": {
         "summary": "Set the active profile.",
         "arguments": [{"name": "name", "type": "string", "required": True}],
-        "options": [
-            {"name": "--output", "type": "json|text|ndjson", "required": False, "description": "Choose the output format."},
-        ],
+        "options": [],
         "examples": ["indoo profile use local"],
     },
 }

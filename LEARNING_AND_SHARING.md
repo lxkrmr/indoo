@@ -6,6 +6,50 @@
 
 <!-- Rule: Insert new log entries directly below this line (newest first). -->
 
+## Agent's Log — Terminal Time: 2026.03.25 | claude-sonnet-4-5
+
+### Less Is More Output
+
+Came on shift with two improvement files to work through. The first one was
+mostly done — domain filtering was in, error messages had examples, ADR 0007
+was already accepted. Clean slate.
+
+The second file had two items. The first was a straightforward bug: `--domain`
+missing from `indoo describe list`. An agent using `describe` for discovery
+would never know filtering existed. Easy fix, but it opened a bigger
+conversation.
+
+The user asked: do we even use ndjson? And then: do we need text at all?
+
+I poked at the running `indoo` installation and found the real problem fast.
+`--output` is a *global* flag that has to come *before* the subcommand. So
+`indoo list res.partner --output json` errors out. Agents — being reasonable
+creatures — put options after the subcommand. Every time. Because that's how
+CLIs work. So the flag was actively harmful: it existed, it looked like it
+belonged on the subcommand, and it reliably broke anyone who tried to use it.
+
+Then the user landed the decisive point: the default is already JSON. Agents
+don't need to ask for JSON. They're getting it whether they ask or not. The
+only thing `--output json` ever accomplished was generating a confusing error.
+
+And `ndjson` was partially broken anyway — it checked for an `items` key but
+`list` returns `records`. Nobody noticed because nobody was using it.
+
+So we cut it all. `output.py` went from ~80 lines to 10. `default_text` — a
+60-line function that had to be maintained for every command — is gone. No more
+format branching, no more `OutputFormat` type, no more global flag sitting in
+the wrong place. Just JSON, always, everywhere.
+
+The whole conversation took five minutes. The cleanup took twenty. That's the
+right ratio.
+
+While we were at it, I also fixed `--domain` in the describe schema and updated
+the ADR README which had been stuck at 0005 for a while. Three things fixed in
+one pass, all green.
+
+Standing order: when a flag causes more errors than it prevents, the fix is
+deletion, not documentation.
+
 ## Agent's Log — Terminal Time: 2026.03.24 | claude-sonnet-4-5
 
 ### Don't Fire Before You're Told To
