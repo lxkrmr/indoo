@@ -23,9 +23,9 @@ app = typer.Typer(
         "indoo is a read-only CLI for inspecting Odoo data. "
         "It helps developers understand what is in Odoo without mutating it. "
         "Start with 'indoo doctor' to verify your setup. "
-        "Then use 'indoo fields MODEL' to explore a model, "
-        "'indoo list MODEL' to find records, "
-        "and 'indoo show MODEL ID FIELDS' to read a specific record."
+        "Then use 'indoo fields_get MODEL' to explore a model, "
+        "'indoo search MODEL' to find records, "
+        "and 'indoo read MODEL ID FIELDS' to read a specific record."
     ),
     no_args_is_help=True,
 )
@@ -191,7 +191,7 @@ def main_options(ctx: typer.Context) -> None:
     ctx.obj = AppState(output=OutputManager())
 
 
-@app.command("list")
+@app.command("search")
 def list_records(
     ctx: typer.Context,
     model: Annotated[str, typer.Argument(help="Technical model name, for example res.partner.")],
@@ -203,11 +203,11 @@ def list_records(
     context_items: ContextOption = [],
     context_json: ContextJsonOption = None,
 ) -> None:
-    """List records for one model with a safe default limit.
+    """Search and read records for one model. Wraps Odoo's search_read.
 
     Use --domain to filter by field values using Odoo domain syntax:
 
-      indoo list product.product id name --domain "[('bid_price', '>', 0)]"
+      indoo search product.product id name --domain "[('bid_price', '>', 0)]"
 
     The domain is a Python list of triples ('field', 'operator', value).
     Prefix operators '|' and '&' are supported.
@@ -225,7 +225,7 @@ def list_records(
             ctx,
             {
                 "ok": True,
-                "action": "list",
+                "action": "search",
                 "model": model,
                 "profile": connection.profile_name,
                 "context": connection.context,
@@ -238,10 +238,10 @@ def list_records(
             },
         )
     except Exception as exc:
-        fail(ctx, error_message(exc), details={"action": "list", "model": model})
+        fail(ctx, error_message(exc), details={"action": "search", "model": model})
 
 
-@app.command("show")
+@app.command("read")
 def show_record(
     ctx: typer.Context,
     model: Annotated[str, typer.Argument(help="Technical model name, for example sale.order.")],
@@ -251,7 +251,7 @@ def show_record(
     context_items: ContextOption = [],
     context_json: ContextJsonOption = None,
 ) -> None:
-    """Read selected fields from a single record. Use 'indoo fields MODEL' first if needed."""
+    """Read fields from a single record. Wraps Odoo's read. Use 'indoo fields_get MODEL' first if needed."""
     try:
         validate_model_name(model)
         validated_fields = validate_field_names(fields)
@@ -265,7 +265,7 @@ def show_record(
             ctx,
             {
                 "ok": True,
-                "action": "show",
+                "action": "read",
                 "model": model,
                 "id": record_id,
                 "profile": connection.profile_name,
@@ -275,17 +275,17 @@ def show_record(
             },
         )
     except Exception as exc:
-        fail(ctx, error_message(exc), details={"action": "show", "model": model, "id": record_id})
+        fail(ctx, error_message(exc), details={"action": "read", "model": model, "id": record_id})
 
 
-@app.command("fields")
+@app.command("fields_get")
 def fields_command(
     ctx: typer.Context,
     model: Annotated[str, typer.Argument(help="Technical model name, for example purchase.order.")],
     fields: Annotated[list[str], typer.Argument(help="Optional field names to inspect.")] = [],
     profile: ProfileOption = None,
 ) -> None:
-    """Describe fields and their metadata for one Odoo model."""
+    """Describe fields and their metadata for one Odoo model. Wraps Odoo's fields_get."""
     try:
         validate_model_name(model)
         validated_fields = validate_field_names(fields) if fields else []
@@ -300,14 +300,14 @@ def fields_command(
             ctx,
             {
                 "ok": True,
-                "action": "fields",
+                "action": "fields_get",
                 "model": model,
                 "profile": connection.profile_name,
                 "fields": field_items,
             },
         )
     except Exception as exc:
-        fail(ctx, error_message(exc), details={"action": "fields", "model": model})
+        fail(ctx, error_message(exc), details={"action": "fields_get", "model": model})
 
 
 @app.command("doctor")
@@ -387,7 +387,7 @@ def doctor(
             **details,
             "checked_profile": resolved_name,
             "message": f"Profile {resolved_name!r} is ready to use.",
-            "next_command": f"indoo show res.partner 1 name --profile {resolved_name}",
+            "next_command": f"indoo read res.partner 1 name --profile {resolved_name}",
         },
     )
 

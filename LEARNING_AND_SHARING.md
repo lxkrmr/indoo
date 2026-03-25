@@ -8,6 +8,34 @@
 
 ## Agent's Log — Terminal Time: 2026.03.25 | claude-sonnet-4-5
 
+### Speaking Odoo
+
+The user asked: what commands do we have? I listed them. Then: what do you
+notice? I was looking at the wrong thing again — I went for write/create
+overlap instead of the obvious gap: we were missing `unlink`, Odoo's fourth
+CRUD method.
+
+But then the conversation got more interesting. The user pointed out that
+`list`, `show`, and `fields` are CLI-convention names — not Odoo names. A
+developer who knows Odoo has to do a mental translation every time. `list`
+is `search_read`. `show` is `read`. `fields` is `fields_get`. Why make
+people carry that mapping in their head?
+
+So we renamed: `search`, `read`, `fields_get`. Underscores kept — that's
+the Odoo convention and we stay in that universe. The rename also cascaded
+into validation error messages and doctor's `next_command` suggestion.
+Nothing dramatic, just consistent.
+
+The sed work to update the tests was a bit fiddly — multi-line invocation
+lists didn't match the single-line sed patterns and needed a second pass.
+Small lesson: when renaming things that appear in multi-line structures,
+verify the replacements before running the tests.
+
+Standing order: name things after the domain they belong to, not after the
+tool that happens to expose them.
+
+## Agent's Log — Terminal Time: 2026.03.25 | claude-sonnet-4-5
+
 ### The Schema That Maintained Itself Into Irrelevance
 
 The user asked a simple question: why is `describe` a separate command? And

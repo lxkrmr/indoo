@@ -16,7 +16,7 @@ def validate_profile_name(name: str) -> str:
         raise ValueError(
             "Profile name may only contain letters, numbers, '.', '-' and '_', "
             "for example: indoo profile add my-odoo --url http://localhost:8069 "
-            "--db odoo --user admin --password admin"
+            "--db odoo --user admin --password admin"  
         )
     return name
 
@@ -27,12 +27,12 @@ def validate_model_name(model: str) -> str:
     if not model or any(char not in allowed for char in model):
         raise ValueError(
             "Model name may only contain letters, numbers, '.' and '_', "
-            "for example: indoo list res.partner id name"
+            "for example: indoo search res.partner id name"
         )
     if "?" in model or "#" in model or "%" in model:
         raise ValueError(
             "Model name must not contain query, fragment, or encoded characters, "
-            "for example: indoo list res.partner id name"
+            "for example: indoo search res.partner id name"
         )
     return model
 
@@ -46,7 +46,7 @@ def validate_field_names(fields: list[str]) -> list[str]:
             raise ValueError(
                 f"Invalid field name: {field!r}. "
                 "Use space-separated field names, "
-                "for example: indoo list res.partner id name email"
+                "for example: indoo search res.partner id name email"
             )
         validated.append(field)
     return validated

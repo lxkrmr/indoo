@@ -107,11 +107,11 @@ password = "admin"
         connection.model.return_value.list.return_value = [{"id": 7}, {"id": 9}]
 
         with patch("indoo.cli.connect", return_value=connection):
-            result = self.runner.invoke(app, ["list", "res.partner"])
+            result = self.runner.invoke(app, ["search", "res.partner"])
 
         self.assertEqual(result.exit_code, 0, result.stdout)
         payload = json.loads(result.stdout)
-        self.assertEqual(payload["action"], "list")
+        self.assertEqual(payload["action"], "search")
         self.assertEqual(payload["fields"], ["id"])
         self.assertEqual(payload["limit"], 10)
         self.assertEqual(payload["offset"], 0)
@@ -128,7 +128,7 @@ password = "admin"
             result = self.runner.invoke(
                 app,
                 [
-                    "list",
+                    "search",
                     "res.partner",
                     "name",
                     "--limit",
@@ -158,7 +158,7 @@ password = "admin"
             result = self.runner.invoke(
                 app,
                 [
-                    "list",
+                    "search",
                     "product.product",
                     "bid_price",
                     "--domain",
@@ -184,7 +184,7 @@ password = "admin"
             result = self.runner.invoke(
                 app,
                 [
-                    "list",
+                    "search",
                     "product.product",
                     "--domain",
                     "['|', ('name', 'ilike', 'Gold'), ('name', 'ilike', 'Silver')]",
@@ -203,20 +203,20 @@ password = "admin"
         with patch("indoo.cli.connect"):
             result = self.runner.invoke(
                 app,
-                ["list", "res.partner", "id,name"],
+                ["search", "res.partner", "id,name"],
             )
 
         self.assertNotEqual(result.exit_code, 0)
         payload = json.loads(result.stdout)
         self.assertFalse(payload["ok"])
         self.assertIn("Invalid field name", payload["message"])
-        self.assertIn("indoo list res.partner id name email", payload["message"])
+        self.assertIn("indoo search res.partner id name email", payload["message"])
 
     def test_list_rejects_invalid_domain(self) -> None:
         with patch("indoo.cli.connect"):
             result = self.runner.invoke(
                 app,
-                ["list", "product.product", "--domain", "not a domain"],
+                ["search", "product.product", "--domain", "not a domain"],
             )
 
         self.assertNotEqual(result.exit_code, 0)
@@ -228,7 +228,7 @@ password = "admin"
         with patch("indoo.cli.connect"):
             result = self.runner.invoke(
                 app,
-                ["list", "product.product", "--domain", "('name', 'ilike', 'Gold')"],
+                ["search", "product.product", "--domain", "('name', 'ilike', 'Gold')"],
             )
 
         self.assertNotEqual(result.exit_code, 0)
@@ -258,11 +258,11 @@ password = "admin"
         ]
 
         with patch("indoo.cli.connect", return_value=connection):
-            result = self.runner.invoke(app, ["fields", "purchase.order", "notes", "state"])
+            result = self.runner.invoke(app, ["fields_get", "purchase.order", "notes", "state"])
 
         self.assertEqual(result.exit_code, 0, result.stdout)
         payload = json.loads(result.stdout)
-        self.assertEqual(payload["action"], "fields")
+        self.assertEqual(payload["action"], "fields_get")
         self.assertEqual(payload["model"], "purchase.order")
         self.assertEqual(payload["fields"][0]["name"], "notes")
         self.assertEqual(payload["fields"][1]["selection"][0][0], "draft")
@@ -273,28 +273,28 @@ password = "admin"
         connection.model.return_value.fields.side_effect = KeyError("Unknown fields: nope")
 
         with patch("indoo.cli.connect", return_value=connection):
-            result = self.runner.invoke(app, ["fields", "purchase.order", "nope"])
+            result = self.runner.invoke(app, ["fields_get", "purchase.order", "nope"])
 
         self.assertEqual(result.exit_code, 1, result.stdout)
         payload = json.loads(result.stdout)
         self.assertEqual(payload["message"], "Unknown fields: nope")
 
     def test_show_rejects_invalid_model_name_with_example(self) -> None:
-        result = self.runner.invoke(app, ["show", "res partner", "1", "name"])
+        result = self.runner.invoke(app, ["read", "res partner", "1", "name"])
         self.assertNotEqual(result.exit_code, 0)
         payload = json.loads(result.stdout)
         self.assertFalse(payload["ok"])
-        self.assertIn("indoo list res.partner id name", payload["message"])
+        self.assertIn("indoo search res.partner id name", payload["message"])
 
     def test_show_rejects_invalid_model_name(self) -> None:
-        result = self.runner.invoke(app, ["show", "sale.order?bad=1", "42", "name"])
+        result = self.runner.invoke(app, ["read", "sale.order?bad=1", "42", "name"])
 
         self.assertEqual(result.exit_code, 1, result.stdout)
         payload = json.loads(result.stdout)
         self.assertIn("Model name", payload["message"])
 
     def test_show_rejects_invalid_context_json(self) -> None:
-        result = self.runner.invoke(app, ["show", "sale.order", "42", "name", "--context-json", "[]"])
+        result = self.runner.invoke(app, ["read", "sale.order", "42", "name", "--context-json", "[]"])
 
         self.assertEqual(result.exit_code, 1, result.stdout)
         payload = json.loads(result.stdout)
