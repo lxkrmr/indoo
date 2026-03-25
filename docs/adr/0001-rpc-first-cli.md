@@ -21,8 +21,11 @@ container layout, and database credentials.
 Direct database access is out of scope for the normal `indoo` workflow.
 Docker-specific access paths are also out of scope.
 
-If work on `indoo` repeatedly reaches for another tool to inspect or mutate
-Odoo data, treat that as a missing CLI feature first.
+If work on `indoo` repeatedly reaches for another tool to inspect Odoo data,
+treat that as a missing CLI feature first.
+
+Note: the scope of `indoo` was later narrowed to inspection only. Mutation
+via `indoo` is out of scope. See ADR 0009.
 
 ## Consequences
 
